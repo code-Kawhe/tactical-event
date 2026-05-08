@@ -10,6 +10,8 @@ import {
   getAllRegistrations,
   checkCpfExists,
   getRegistrationsForExport,
+  calculateTotalAmount,
+  updatePaymentStatus,
   TEAM_LIMIT,
 } from "./db";
 import * as XLSX from "xlsx";
@@ -119,6 +121,12 @@ export const appRouter = router({
       }
 
       try {
+        const totalAmount = calculateTotalAmount({
+          wantsPatch: input.wantsPatch,
+          wantsShirt: input.wantsShirt,
+          hasCompanion: input.hasCompanion,
+          companionCount: input.hasCompanion ? (input.companionCount ?? 1) : 0,
+        });
         const result = await createRegistration({
           cpf: cpfFormatted,
           fullName: input.fullName,
@@ -131,6 +139,8 @@ export const appRouter = router({
           shirtSize: input.wantsShirt ? input.shirtSize : undefined,
           hasCompanion: input.hasCompanion,
           companionCount: input.hasCompanion ? (input.companionCount ?? 1) : 0,
+          paymentStatus: 'pending',
+          totalAmount: totalAmount,
         });
         const teamLink =
           input.team === "FORCA_INTERVENCAO"
@@ -139,6 +149,7 @@ export const appRouter = router({
         return {
           success: true,
           id: result.id,
+          totalAmount: totalAmount,
           mainGroupLink: EVENT_LINKS.mainGroup,
           teamGroupLink: teamLink,
           team: input.team,
@@ -212,9 +223,18 @@ export const appRouter = router({
         filename: `inscricoes-operacao-falcao-negro-${new Date().toISOString().split("T")[0]}.xlsx`,
       };
     }),
+     // Protected: confirm payment status (admin only)
+    confirmPayment: protectedProcedure
+      .input(z.object({ registrationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+        }
+        await updatePaymentStatus(input.registrationId, "confirmed");
+        return { success: true };
+      }),
     // Public: get event links config (for confirmation page)
     getEventLinks: publicProcedure.query(() => EVENT_LINKS),
   }),
 });
-
 export type AppRouter = typeof appRouter;

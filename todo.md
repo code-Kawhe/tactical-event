@@ -75,3 +75,57 @@
 - [x] Criar procedure tRPC para exportar inscrições em Excel
 - [x] Implementar botao de download no painel admin
 - [x] Testar export com dados reais
+
+
+## Integração Stripe e Preços
+
+### Exibição de Preços
+- [ ] Exibir preço da inscrição: R$ 50,00
+- [ ] Exibir preço da camisa: R$ 50,00
+- [ ] Exibir preço do patch: R$ 15,00
+- [ ] Exibir preço do acompanhante: R$ 25,00
+- [ ] Calcular total dinâmico na inscrição
+
+### Integração Stripe
+- [ ] Adicionar feature Stripe ao webdev
+- [ ] Configurar chaves Stripe (pública e secreta)
+- [ ] Criar procedure tRPC para criar checkout session
+- [ ] Implementar webhook para confirmar pagamento
+- [ ] Atualizar status de pagamento no banco de dados
+- [ ] Bloquear inscrição até confirmação de pagamento
+- [ ] Testar fluxo completo de pagamento
+
+
+## Pagamento via Pix
+
+### Exibição de Preços
+- [x] Exibir preço da inscrição: R$ 50,00
+- [x] Exibir preço da camisa: R$ 50,00
+- [x] Exibir preço do patch: R$ 15,00
+- [x] Exibir preço do acompanhante: R$ 25,00
+- [x] Calcular total dinâmico na inscrição
+- [x] Resumo de preços na tela de inscrição
+
+### Schema e Banco de Dados
+- [x] Adicionar campo paymentStatus (pending/confirmed) ao schema
+- [x] Adicionar campo pixKey (não necessário - usando placeholder) para armazenar chave Pix
+- [x] Adicionar campo whatsappLink (não necessário - usando link fixo) para link de contato
+- [x] Criar migracao SQL
+
+### Tela de Confirmacao
+- [x] Exibir valor total a pagar
+- [x] Exibir chave Pix (placeholder aguardando valor) para transferencia
+- [x] Exibir instrucoes de pagamento
+- [x] Botao para enviar comprovante via WhatsApp
+- [x] Aviso: inscrição pendente de confirmação de pagamento
+
+### Painel Admin
+- [ ] Filtrar inscricoes por status de pagamento
+- [x] Botao para confirmar pagamento (procedure tRPC criada)
+- [x] Marcar inscricao como confirmada (via procedure)
+- [ ] Exibir status na tabela de inscritos
+
+### Testes
+- [x] Testar fluxo completo (12 testes passando)
+- [ ] Testar confirmacao de pagamento no admin
+- [x] Testar redirecionamento (link WhatsApp integrado) para WhatsApp

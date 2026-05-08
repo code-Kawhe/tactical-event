@@ -29,6 +29,8 @@ export const registrations = mysqlTable("registrations", {
   shirtSize: mysqlEnum("shirtSize", ["P", "M", "G", "GG"]),
   hasCompanion: boolean("hasCompanion").notNull().default(false),
   companionCount: int("companionCount").default(0),
+  paymentStatus: mysqlEnum("paymentStatus", ["pending", "confirmed"]).default("pending").notNull(),
+  totalAmount: int("totalAmount").notNull().default(5000),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   cpfIndex: uniqueIndex("cpf_idx").on(table.cpf),

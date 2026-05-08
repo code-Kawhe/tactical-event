@@ -75,12 +75,14 @@ function ConfirmationScreen({
   mainGroupLink, 
   teamGroupLink,
   isAdult,
+  totalAmount,
   onClose 
 }: {
   team: "FORCA_INTERVENCAO" | "MILICIA_LOCAL";
   mainGroupLink: string;
   teamGroupLink: string;
   isAdult: boolean;
+  totalAmount?: number;
   onClose: () => void;
 }) {
   const teamName = team === "FORCA_INTERVENCAO" ? "FORÇA DE INTERVENÇÃO" : "MILÍCIA LOCAL";
@@ -88,6 +90,10 @@ function ConfirmationScreen({
   const teamBorder = team === "FORCA_INTERVENCAO" ? "border-green-500/40" : "border-amber-500/40";
   const teamBg = team === "FORCA_INTERVENCAO" ? "bg-green-900/20" : "bg-amber-900/20";
 
+  const whatsappLink = "https://api.whatsapp.com/send/?phone=%2B5569984596623&text&type=phone_number&app_absent=0";
+  const formatCurrency = (cents: number) => {
+    return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  };
   const handleDownloadAuthorizationPDF = () => {
     toast.error("PDF de autorização será disponibilizado em breve. Aguarde o envio do arquivo.");
   };
@@ -131,6 +137,42 @@ function ConfirmationScreen({
               <Download className="w-4 h-4 mr-2" />
               Baixar Termo de Autorização
             </Button>
+          </div>
+        )}
+
+        {/* Payment information */}
+        {totalAmount && (
+          <div className="bg-primary/10 border-2 border-primary/30 rounded-lg p-4 mb-6">
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Valor a Pagar</p>
+              <p className="text-3xl font-black text-primary" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                {formatCurrency(totalAmount)}
+              </p>
+            </div>
+            <div className="bg-secondary/30 rounded p-3 mb-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Chave Pix (será informada em breve)</p>
+              <p className="text-sm font-mono text-foreground">Aguardando configuração...</p>
+            </div>
+            <div className="bg-warning/10 border border-warning/30 rounded p-3 mb-4">
+              <p className="text-xs text-muted-foreground mb-2">
+                <strong>Como proceder:</strong>
+              </p>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Realize a transferência Pix para a chave acima</li>
+                <li>Capture o comprovante de pagamento</li>
+                <li>Envie o comprovante via WhatsApp</li>
+              </ol>
+            </div>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 w-full justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-bold text-sm transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Enviar Comprovante via WhatsApp
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         )}
 
@@ -208,10 +250,12 @@ export default function Home() {
     try {
       const result = await createRegistration.mutateAsync(data);
       setConfirmationData({
+        totalAmount: result.totalAmount,
         team: result.team,
         mainGroupLink: result.mainGroupLink,
         teamGroupLink: result.teamGroupLink,
         isAdult: result.isAdult,
+        totalAmount: result.totalAmount,
       });
       setShowConfirmation(true);
       toast.success("Inscrição realizada com sucesso!");
@@ -223,6 +267,7 @@ export default function Home() {
   if (showConfirmation && confirmationData) {
     return (
       <ConfirmationScreen
+        totalAmount={confirmationData.totalAmount}
         team={confirmationData.team}
         mainGroupLink={confirmationData.mainGroupLink}
         teamGroupLink={confirmationData.teamGroupLink}
@@ -477,6 +522,44 @@ export default function Home() {
             )}
           </div>
 
+          {/* Pricing summary */}
+          <div className="p-6 rounded-xl border-2 border-primary/30 bg-primary/5 military-glow mb-6">
+            <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-3">Resumo de Preços</h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span>Inscrição no Evento</span>
+                <span className="font-bold">R$ 50,00</span>
+              </div>
+              {watch("wantsPatch") && (
+                <div className="flex justify-between text-amber-400">
+                  <span>+ Patch Oficial</span>
+                  <span className="font-bold">R$ 15,00</span>
+                </div>
+              )}
+              {watch("wantsShirt") && (
+                <div className="flex justify-between text-blue-400">
+                  <span>+ Camisa Oficial ({watch("shirtSize")})</span>
+                  <span className="font-bold">R$ 50,00</span>
+                </div>
+              )}
+              {watch("hasCompanion") && watch("companionCount") && (
+                <div className="flex justify-between text-purple-400">
+                  <span>+ {watch("companionCount")} Acompanhante(s)</span>
+                  <span className="font-bold">R$ {((watch("companionCount") || 0) * 25).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="border-t border-border pt-2 mt-2 flex justify-between font-bold text-foreground">
+                <span>TOTAL</span>
+                <span className="text-primary">R$ {(
+                  50 +
+                  (watch("wantsPatch") ? 15 : 0) +
+                  (watch("wantsShirt") ? 50 : 0) +
+                  (watch("hasCompanion") && watch("companionCount") ? (watch("companionCount") || 0) * 25 : 0)
+                ).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Optionals section */}
           <div className="p-6 rounded-xl border-2 border-border bg-card/50 military-glow">
             <h2 className="text-2xl font-black text-foreground mb-6" style={{ fontFamily: "'Orbitron', sans-serif" }}>
@@ -488,7 +571,7 @@ export default function Home() {
               <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
                 <div>
                   <p className="font-bold text-sm">Patch Oficial</p>
-                  <p className="text-xs text-muted-foreground">R$ 20,00</p>
+                  <p className="text-xs text-muted-foreground">R$ 15,00</p>
                 </div>
                 <input
                   type="checkbox"
@@ -500,7 +583,10 @@ export default function Home() {
               {/* Shirt */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
-                  <p className="font-bold text-sm">Camisa Oficial</p>
+                  <div>
+                    <p className="font-bold text-sm">Camisa Oficial</p>
+                    <p className="text-xs text-muted-foreground">R$ 50,00</p>
+                  </div>
                   <input
                     type="checkbox"
                     {...register("wantsShirt")}
@@ -539,7 +625,10 @@ export default function Home() {
               {/* Companion */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
-                  <p className="font-bold text-sm">Levar Acompanhante</p>
+                  <div>
+                    <p className="font-bold text-sm">Levar Acompanhante</p>
+                    <p className="text-xs text-muted-foreground">R$ 25,00 por acompanhante</p>
+                  </div>
                   <input
                     type="checkbox"
                     {...register("hasCompanion")}

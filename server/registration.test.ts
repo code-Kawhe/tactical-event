@@ -8,6 +8,16 @@ vi.mock("./db", () => ({
   createRegistration: vi.fn().mockResolvedValue({ id: 1 }),
   getAllRegistrations: vi.fn().mockResolvedValue([]),
   checkCpfExists: vi.fn().mockResolvedValue(false),
+  calculateTotalAmount: vi.fn((data: any) => {
+    let total = 5000;
+    if (data.wantsPatch) total += 1500;
+    if (data.wantsShirt) total += 5000;
+    if (data.hasCompanion && data.companionCount > 0) {
+      total += data.companionCount * 2500;
+    }
+    return total;
+  }),
+  updatePaymentStatus: vi.fn().mockResolvedValue(undefined),
   TEAM_LIMIT: 75,
 }));
 

@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `registrations` ADD `paymentStatus` enum('pending','confirmed') DEFAULT 'pending' NOT NULL; ALTER TABLE `registrations` ADD `totalAmount` int DEFAULT 5000 NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ezLfj4wo3VWxDZv.root --database S4d6q64CEgujh6zTeSZuJG --execute ALTER TABLE `registrations` ADD `paymentStatus` enum('pending','confirmed') DEFAULT 'pending' NOT NULL; ALTER TABLE `registrations` ADD `totalAmount` int DEFAULT 5000 NOT NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 336
+}

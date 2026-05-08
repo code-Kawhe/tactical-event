@@ -136,3 +136,26 @@ export async function getRegistrationsForExport(): Promise<Array<Registration & 
   const rows = await db.select().from(registrations).orderBy(registrations.registrationNumber);
   return rows as Array<Registration & { registrationNumber: number | null }>;
 }
+
+
+// Payment helpers
+export function calculateTotalAmount(data: {
+  wantsPatch: boolean;
+  wantsShirt: boolean;
+  hasCompanion: boolean;
+  companionCount: number;
+}): number {
+  let total = 5000; // R$ 50,00 base
+  if (data.wantsPatch) total += 1500; // R$ 15,00
+  if (data.wantsShirt) total += 5000; // R$ 50,00
+  if (data.hasCompanion && data.companionCount > 0) {
+    total += data.companionCount * 2500; // R$ 25,00 each
+  }
+  return total;
+}
+
+export async function updatePaymentStatus(registrationId: number, status: 'pending' | 'confirmed'): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.update(registrations).set({ paymentStatus: status }).where(eq(registrations.id, registrationId));
+}
