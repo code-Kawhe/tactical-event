@@ -67,3 +67,11 @@
 - [x] Adicionar botao de download de PDF para menores (placeholder aguardando arquivo)
 - [x] Atualizar testes para incluir validacao de CPF
 - [x] Todos os 12 testes passando
+
+
+## Export em Excel com Numeracao Sequencial
+- [x] Adicionar campo de numeracao sequencial no schema (numero de 1 a 150)
+- [x] Criar helper para gerar numero automaticamente ao inscrever
+- [x] Criar procedure tRPC para exportar inscrições em Excel
+- [x] Implementar botao de download no painel admin
+- [x] Testar export com dados reais

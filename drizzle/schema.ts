@@ -17,6 +17,7 @@ export type InsertUser = typeof users.$inferInsert;
 
 export const registrations = mysqlTable("registrations", {
   id: int("id").autoincrement().primaryKey(),
+  registrationNumber: int("registrationNumber").unique(),
   cpf: varchar("cpf", { length: 14 }).notNull().unique(),
   fullName: varchar("fullName", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }).notNull(),
@@ -31,7 +32,13 @@ export const registrations = mysqlTable("registrations", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   cpfIndex: uniqueIndex("cpf_idx").on(table.cpf),
+  registrationNumberIndex: uniqueIndex("registration_number_idx").on(table.registrationNumber),
 }));
 
 export type Registration = typeof registrations.$inferSelect;
 export type InsertRegistration = typeof registrations.$inferInsert;
+
+// Helper para gerar o próximo número de inscrição
+export function getNextRegistrationNumber(totalRegistrations: number): number {
+  return Math.min(totalRegistrations + 1, 150);
+}

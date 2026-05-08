@@ -106,7 +106,14 @@ export async function createRegistration(data: InsertRegistration): Promise<{ id
     throw new Error(`A equipe ${data.team === "FORCA_INTERVENCAO" ? "FORÇA DE INTERVENÇÃO" : "MILÍCIA LOCAL"} já atingiu o limite de ${TEAM_LIMIT} participantes.`);
   }
 
-  const result = await db.insert(registrations).values(data);
+  // Get next registration number
+  const totalRegistrations = await db.select({ count: sql<number>`count(*)` }).from(registrations);
+  const nextNumber = Math.min(Number(totalRegistrations[0]?.count ?? 0) + 1, 150);
+
+  const result = await db.insert(registrations).values({
+    ...data,
+    registrationNumber: nextNumber,
+  });
   return { id: Number((result as any)[0]?.insertId ?? 0) };
 }
 
@@ -121,4 +128,11 @@ export async function checkCpfExists(cpf: string): Promise<boolean> {
   if (!db) return false;
   const result = await db.select().from(registrations).where(eq(registrations.cpf, cpf)).limit(1);
   return result.length > 0;
+}
+
+export async function getRegistrationsForExport(): Promise<Array<Registration & { registrationNumber: number | null }>> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(registrations).orderBy(registrations.registrationNumber);
+  return rows as Array<Registration & { registrationNumber: number | null }>;
 }

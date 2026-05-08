@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `registrations` ADD `registrationNumber` int;\nALTER TABLE `registrations` ADD CONSTRAINT `registrations_registrationNumber_unique` UNIQUE(`registrationNumber`);\nALTER TABLE `registrations` ADD CONSTRAINT `registration_number_idx` UNIQUE(`registrationNumber`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ezLfj4wo3VWxDZv.root --database S4d6q64CEgujh6zTeSZuJG --execute ALTER TABLE `registrations` ADD `registrationNumber` int;\nALTER TABLE `registrations` ADD CONSTRAINT `registrations_registrationNumber_unique` UNIQUE(`registrationNumber`);\nALTER TABLE `registrations` ADD CONSTRAINT `registration_number_idx` UNIQUE(`registrationNumber`);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 679
+}

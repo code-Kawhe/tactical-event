@@ -12,6 +12,7 @@ import {
   Target,
   Crosshair,
   ArrowLeft,
+  Download,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -34,6 +35,29 @@ export default function AdminPanel() {
     enabled: isAuthenticated && user?.role === "admin",
     refetchInterval: 15000,
   });
+  const { mutate: exportExcel, isPending: isExporting } = trpc.registration.exportExcel.useMutation();
+
+  const handleExportExcel = async () => {
+    exportExcel(undefined, {
+      onSuccess: (result: { success: boolean; buffer: string; filename: string }) => {
+        // Decode base64 to binary string
+        const binaryString = atob(result.buffer);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = result.filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      },
+    });
+  };
 
   // Loading auth state
   if (loading) {
@@ -200,16 +224,28 @@ export default function AdminPanel() {
 
         {/* Registrations table */}
         <div className="rounded-xl border border-border bg-card military-glow overflow-hidden">
-          <div className="p-5 border-b border-border flex items-center justify-between">
+          <div className="p-5 border-b border-border flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <Users className="w-5 h-5 text-primary" />
               <h2 className="font-bold uppercase tracking-widest text-sm" style={{ fontFamily: "'Orbitron', sans-serif" }}>
                 Lista de Inscritos
               </h2>
             </div>
-            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-              {totalRegistrations} registros
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+                {totalRegistrations} registros
+              </span>
+              <Button
+                onClick={() => handleExportExcel()}
+                disabled={isExporting || totalRegistrations === 0}
+                size="sm"
+                className="gap-2"
+                type="button"
+              >
+                <Download className="w-4 h-4" />
+                {isExporting ? "Exportando..." : "Exportar Excel"}
+              </Button>
+            </div>
           </div>
 
           {dataLoading ? (
@@ -226,7 +262,7 @@ export default function AdminPanel() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-secondary/30">
-                    <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">#</th>
+                    <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Nº</th>
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Nome</th>
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Equipe</th>
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Telefone</th>

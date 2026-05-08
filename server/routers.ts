@@ -9,8 +9,10 @@ import {
   createRegistration,
   getAllRegistrations,
   checkCpfExists,
+  getRegistrationsForExport,
   TEAM_LIMIT,
 } from "./db";
+import * as XLSX from "xlsx";
 
 // ─── Event configuration ─────────────────────────────────────────────────────
 // Update these links before going live
@@ -157,6 +159,58 @@ export const appRouter = router({
       const rows = await getAllRegistrations();
       const counts = await getTeamCounts();
       return { registrations: rows, counts, limit: TEAM_LIMIT };
+    }),
+    // Protected: export registrations as Excel (admin only)
+    exportExcel: protectedProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+      }
+
+      const registrations = await getRegistrationsForExport();
+
+      // Prepare data for Excel
+      const data = registrations.map((reg) => ({
+        "Nº": reg.registrationNumber ?? "-",
+        "Nome Completo": reg.fullName,
+        "CPF": reg.cpf,
+        "Telefone": reg.phone,
+        "Telefone Familiar": reg.familyPhone,
+        "Maior de 18": reg.isAdult ? "Sim" : "Não",
+        "Equipe": reg.team === "FORCA_INTERVENCAO" ? "FORÇA DE INTERVENÇÃO" : "MILÍCIA LOCAL",
+        "Patch (R$ 20)": reg.wantsPatch ? "Sim" : "Não",
+        "Camisa": reg.wantsShirt ? `Sim (${reg.shirtSize})` : "Não",
+        "Acompanhantes": (reg.companionCount ?? 0) > 0 ? reg.companionCount : "Não",
+        "Data Inscrição": new Date(reg.createdAt).toLocaleString("pt-BR"),
+      }));
+
+      // Create workbook
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Inscrições");
+
+      // Set column widths
+      ws["!cols"] = [
+        { wch: 6 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 12 },
+        { wch: 20 },
+        { wch: 12 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 20 },
+      ];
+
+      // Generate buffer
+      const buffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
+
+      return {
+        success: true,
+        buffer: buffer.toString("base64"),
+        filename: `inscricoes-operacao-falcao-negro-${new Date().toISOString().split("T")[0]}.xlsx`,
+      };
     }),
     // Public: get event links config (for confirmation page)
     getEventLinks: publicProcedure.query(() => EVENT_LINKS),
