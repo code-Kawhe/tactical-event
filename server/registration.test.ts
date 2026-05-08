@@ -7,6 +7,7 @@ vi.mock("./db", () => ({
   getTeamCounts: vi.fn().mockResolvedValue({ FORCA_INTERVENCAO: 0, MILICIA_LOCAL: 0 }),
   createRegistration: vi.fn().mockResolvedValue({ id: 1 }),
   getAllRegistrations: vi.fn().mockResolvedValue([]),
+  checkCpfExists: vi.fn().mockResolvedValue(false),
   TEAM_LIMIT: 75,
 }));
 
@@ -91,6 +92,7 @@ describe("registration.create", () => {
   });
 
   const validInput = {
+    cpf: "11144477735",
     fullName: "João Silva",
     phone: "11999990000",
     familyPhone: "11888880000",
@@ -112,12 +114,29 @@ describe("registration.create", () => {
     expect(result.teamGroupLink).toBeDefined();
   });
 
-  it("rejects registration when isAdult is false", async () => {
+  it("rejects registration when CPF is invalid", async () => {
     const caller = appRouter.createCaller(createPublicContext());
 
     await expect(
-      caller.registration.create({ ...validInput, isAdult: false })
-    ).rejects.toThrow("maior de 18 anos");
+      caller.registration.create({ ...validInput, cpf: "11111111111" })
+    ).rejects.toThrow("CPF");
+  });
+
+  it("rejects registration when CPF already exists", async () => {
+    vi.mocked(db.checkCpfExists).mockResolvedValueOnce(true);
+    const caller = appRouter.createCaller(createPublicContext());
+
+    await expect(
+      caller.registration.create(validInput)
+    ).rejects.toThrow("CPF já foi registrado");
+  });
+
+  it("allows registration for minors (isAdult false)", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.registration.create({ ...validInput, isAdult: false });
+
+    expect(result.success).toBe(true);
+    expect(result.isAdult).toBe(false);
   });
 
   it("rejects registration when wantsShirt is true but no size provided", async () => {

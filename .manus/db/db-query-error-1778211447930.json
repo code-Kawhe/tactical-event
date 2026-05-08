@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE `registrations` ADD `cpf` varchar(14) NOT NULL;\nALTER TABLE `registrations` ADD CONSTRAINT `registrations_cpf_unique` UNIQUE(`cpf`);\nALTER TABLE `registrations` ADD CONSTRAINT `cpf_idx` UNIQUE(`cpf`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ezLfj4wo3VWxDZv.root --database S4d6q64CEgujh6zTeSZuJG --execute ALTER TABLE `registrations` ADD `cpf` varchar(14) NOT NULL;\nALTER TABLE `registrations` ADD CONSTRAINT `registrations_cpf_unique` UNIQUE(`cpf`);\nALTER TABLE `registrations` ADD CONSTRAINT `cpf_idx` UNIQUE(`cpf`);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1062 (23000) at line 2: Duplicate entry '?' for key 'registrations.registrations_cpf_unique'"
+  ]
+}

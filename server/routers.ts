@@ -8,6 +8,7 @@ import {
   getTeamCounts,
   createRegistration,
   getAllRegistrations,
+  checkCpfExists,
   TEAM_LIMIT,
 } from "./db";
 
@@ -19,8 +20,42 @@ const EVENT_LINKS = {
   miliciaLocal: "https://chat.whatsapp.com/K6Gupp3HzUHHScVEQ4ahee",
 };
 
+// ─── CPF validation helper ────────────────────────────────────────────────────
+function formatCpf(cpf: string): string {
+  return cpf.replace(/\D/g, "");
+}
+
+function isValidCpf(cpf: string): boolean {
+  const cleaned = formatCpf(cpf);
+  if (cleaned.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cleaned)) return false;
+
+  let sum = 0;
+  let remainder;
+
+  for (let i = 1; i <= 9; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (11 - i);
+  }
+
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(9, 10))) return false;
+
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (12 - i);
+  }
+
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(10, 11))) return false;
+
+  return true;
+}
+
 // ─── Validation schema ────────────────────────────────────────────────────────
 const registrationInput = z.object({
+  cpf: z.string().min(11, "CPF inválido").refine(isValidCpf, "CPF inválido"),
   fullName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   phone: z.string().min(10, "Telefone inválido"),
   familyPhone: z.string().min(10, "Telefone de familiar inválido"),
@@ -36,7 +71,6 @@ const registrationInput = z.object({
 // ─── Routers ──────────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
-
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -45,7 +79,6 @@ export const appRouter = router({
       return { success: true } as const;
     }),
   }),
-
   registration: router({
     // Public: get current team counts and availability
     getTeamCounts: publicProcedure.query(async () => {
@@ -64,13 +97,15 @@ export const appRouter = router({
         limit: TEAM_LIMIT,
       };
     }),
-
     // Public: create a new registration
     create: publicProcedure.input(registrationInput).mutation(async ({ input }) => {
-      if (!input.isAdult) {
+      // Validate CPF uniqueness
+      const cpfFormatted = formatCpf(input.cpf);
+      const cpfExists = await checkCpfExists(cpfFormatted);
+      if (cpfExists) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "É necessário ser maior de 18 anos para se inscrever.",
+          message: "Este CPF já foi registrado. Apenas uma inscrição por CPF é permitida.",
         });
       }
 
@@ -83,6 +118,7 @@ export const appRouter = router({
 
       try {
         const result = await createRegistration({
+          cpf: cpfFormatted,
           fullName: input.fullName,
           phone: input.phone,
           familyPhone: input.familyPhone,
@@ -94,18 +130,17 @@ export const appRouter = router({
           hasCompanion: input.hasCompanion,
           companionCount: input.hasCompanion ? (input.companionCount ?? 1) : 0,
         });
-
         const teamLink =
           input.team === "FORCA_INTERVENCAO"
             ? EVENT_LINKS.forcaIntervencao
             : EVENT_LINKS.miliciaLocal;
-
         return {
           success: true,
           id: result.id,
           mainGroupLink: EVENT_LINKS.mainGroup,
           teamGroupLink: teamLink,
           team: input.team,
+          isAdult: input.isAdult,
         };
       } catch (err: any) {
         throw new TRPCError({
@@ -114,7 +149,6 @@ export const appRouter = router({
         });
       }
     }),
-
     // Protected: list all registrations (admin only)
     list: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") {
@@ -124,7 +158,6 @@ export const appRouter = router({
       const counts = await getTeamCounts();
       return { registrations: rows, counts, limit: TEAM_LIMIT };
     }),
-
     // Public: get event links config (for confirmation page)
     getEventLinks: publicProcedure.query(() => EVENT_LINKS),
   }),

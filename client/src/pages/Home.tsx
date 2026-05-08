@@ -17,12 +17,42 @@ const IMAGES = {
   terms: "/manus-storage/4_7c1f7eda.jpg",
 };
 
+// ─── CPF validation ───────────────────────────────────────────────────────────
+function isValidCpf(cpf: string): boolean {
+  const cleaned = cpf.replace(/\D/g, "");
+  if (cleaned.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cleaned)) return false;
+
+  let sum = 0;
+  let remainder;
+
+  for (let i = 1; i <= 9; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (11 - i);
+  }
+
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(9, 10))) return false;
+
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (12 - i);
+  }
+
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(10, 11))) return false;
+
+  return true;
+}
+
 // ─── Form schema ──────────────────────────────────────────────────────────────
 const formSchema = z.object({
+  cpf: z.string().min(11, "CPF inválido").refine(isValidCpf, "CPF inválido"),
   fullName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   phone: z.string().min(10, "Telefone inválido (mínimo 10 dígitos)"),
   familyPhone: z.string().min(10, "Telefone de familiar inválido (mínimo 10 dígitos)"),
-  isAdult: z.boolean().refine(v => v === true, "Você deve ser maior de 18 anos para se inscrever"),
+  isAdult: z.boolean().refine(v => v === true || v === false, "Selecione uma opção"),
   team: z.enum(["FORCA_INTERVENCAO", "MILICIA_LOCAL"] as const, { error: "Selecione uma equipe" }),
   wantsPatch: z.boolean(),
   wantsShirt: z.boolean(),
@@ -59,7 +89,6 @@ function ConfirmationScreen({
   const teamBg = team === "FORCA_INTERVENCAO" ? "bg-green-900/20" : "bg-amber-900/20";
 
   const handleDownloadAuthorizationPDF = () => {
-    // Placeholder: will be replaced with actual PDF when provided
     toast.error("PDF de autorização será disponibilizado em breve. Aguarde o envio do arquivo.");
   };
 
@@ -158,7 +187,7 @@ export default function Home() {
   const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      isAdult: false,
+      isAdult: true,
       wantsPatch: false,
       wantsShirt: false,
       hasCompanion: false,
@@ -182,7 +211,7 @@ export default function Home() {
         team: result.team,
         mainGroupLink: result.mainGroupLink,
         teamGroupLink: result.teamGroupLink,
-        isAdult: data.isAdult,
+        isAdult: result.isAdult,
       });
       setShowConfirmation(true);
       toast.success("Inscrição realizada com sucesso!");
@@ -256,6 +285,22 @@ export default function Home() {
             </h2>
 
             <div className="space-y-4">
+              {/* CPF */}
+              <div>
+                <Label htmlFor="cpf" className="text-xs uppercase tracking-widest font-bold">
+                  CPF *
+                </Label>
+                <Input
+                  id="cpf"
+                  placeholder="000.000.000-00"
+                  {...register("cpf")}
+                  className="mt-2 bg-secondary/50 border-border"
+                />
+                {errors.cpf && (
+                  <p className="text-xs text-destructive mt-1">{errors.cpf.message}</p>
+                )}
+              </div>
+
               {/* Full name */}
               <div>
                 <Label htmlFor="fullName" className="text-xs uppercase tracking-widest font-bold">
@@ -304,21 +349,45 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Age confirmation */}
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-border">
-                <input
-                  type="checkbox"
-                  id="isAdult"
-                  {...register("isAdult")}
-                  className="w-4 h-4 cursor-pointer"
-                />
-                <Label htmlFor="isAdult" className="text-xs font-bold cursor-pointer flex-1">
-                  Confirmo que sou maior de 18 anos *
+              {/* Age confirmation - now as a question with Sim/Não */}
+              <div className="space-y-3">
+                <Label className="text-xs uppercase tracking-widest font-bold block">
+                  Você é maior de 18 anos? *
                 </Label>
+                <div className="flex gap-3">
+                  <label className="flex-1 cursor-pointer">
+                    <div className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      isAdult === true
+                        ? "border-green-500/60 bg-green-900/20"
+                        : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
+                    }`}>
+                      <input
+                        type="radio"
+                        checked={isAdult === true}
+                        onChange={() => register("isAdult").onChange({ target: { value: true } } as any)}
+                        className="sr-only"
+                      />
+                      <input type="hidden" {...register("isAdult")} value={isAdult ? "true" : "false"} />
+                      <p className="font-bold text-green-400 text-sm">SIM</p>
+                    </div>
+                  </label>
+                  <label className="flex-1 cursor-pointer">
+                    <div className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      isAdult === false
+                        ? "border-amber-500/60 bg-amber-900/20"
+                        : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
+                    }`}>
+                      <input
+                        type="radio"
+                        checked={isAdult === false}
+                        onChange={() => register("isAdult").onChange({ target: { value: false } } as any)}
+                        className="sr-only"
+                      />
+                      <p className="font-bold text-amber-400 text-sm">NÃO</p>
+                    </div>
+                  </label>
+                </div>
               </div>
-              {errors.isAdult && (
-                <p className="text-xs text-destructive">{errors.isAdult.message}</p>
-              )}
             </div>
           </div>
 

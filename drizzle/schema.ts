@@ -1,4 +1,4 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar, uniqueIndex } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -17,6 +17,7 @@ export type InsertUser = typeof users.$inferInsert;
 
 export const registrations = mysqlTable("registrations", {
   id: int("id").autoincrement().primaryKey(),
+  cpf: varchar("cpf", { length: 14 }).notNull().unique(),
   fullName: varchar("fullName", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }).notNull(),
   familyPhone: varchar("familyPhone", { length: 20 }).notNull(),
@@ -28,7 +29,9 @@ export const registrations = mysqlTable("registrations", {
   hasCompanion: boolean("hasCompanion").notNull().default(false),
   companionCount: int("companionCount").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  cpfIndex: uniqueIndex("cpf_idx").on(table.cpf),
+}));
 
 export type Registration = typeof registrations.$inferSelect;
 export type InsertRegistration = typeof registrations.$inferInsert;

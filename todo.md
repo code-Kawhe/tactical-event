@@ -55,3 +55,15 @@
 - [x] Mudar nome do evento para "Operacao Falcao Negro"
 - [x] Implementar aviso para menores de idade na tela de confirmacao
 - [x] Botao de download de PDF para menores (placeholder aguardando arquivo)
+
+
+## Atualizacoes com CPF e Maioridade
+- [x] Adicionar campo CPF (obrigatorio) com validacao
+- [x] Criar indice unico para CPF no banco de dados
+- [x] Implementar validacao de CPF duplicado (apenas uma inscricao por CPF)
+- [x] Alterar pergunta de maioridade para Sim/Nao (radio buttons)
+- [x] Permitir inscricao de menores de idade (isAdult = false)
+- [x] Exibir aviso destacado para menores na tela de confirmacao
+- [x] Adicionar botao de download de PDF para menores (placeholder aguardando arquivo)
+- [x] Atualizar testes para incluir validacao de CPF
+- [x] Todos os 12 testes passando

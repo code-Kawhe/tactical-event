@@ -115,3 +115,10 @@ export async function getAllRegistrations(): Promise<Registration[]> {
   if (!db) return [];
   return db.select().from(registrations).orderBy(registrations.createdAt);
 }
+
+export async function checkCpfExists(cpf: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(registrations).where(eq(registrations.cpf, cpf)).limit(1);
+  return result.length > 0;
+}
