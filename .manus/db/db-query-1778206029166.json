@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `registrations` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`fullName` varchar(255) NOT NULL,\n\t`phone` varchar(20) NOT NULL,\n\t`familyPhone` varchar(20) NOT NULL,\n\t`isAdult` boolean NOT NULL,\n\t`team` enum('FORCA_INTERVENCAO','MILICIA_LOCAL') NOT NULL,\n\t`wantsPatch` boolean NOT NULL DEFAULT false,\n\t`wantsShirt` boolean NOT NULL DEFAULT false,\n\t`shirtSize` enum('P','M','G','GG'),\n\t`hasCompanion` boolean NOT NULL DEFAULT false,\n\t`companionCount` int DEFAULT 0,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `registrations_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ezLfj4wo3VWxDZv.root --database S4d6q64CEgujh6zTeSZuJG --execute CREATE TABLE `registrations` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`fullName` varchar(255) NOT NULL,\n\t`phone` varchar(20) NOT NULL,\n\t`familyPhone` varchar(20) NOT NULL,\n\t`isAdult` boolean NOT NULL,\n\t`team` enum('FORCA_INTERVENCAO','MILICIA_LOCAL') NOT NULL,\n\t`wantsPatch` boolean NOT NULL DEFAULT false,\n\t`wantsShirt` boolean NOT NULL DEFAULT false,\n\t`shirtSize` enum('P','M','G','GG'),\n\t`hasCompanion` boolean NOT NULL DEFAULT false,\n\t`companionCount` int DEFAULT 0,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `registrations_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 735
+}
