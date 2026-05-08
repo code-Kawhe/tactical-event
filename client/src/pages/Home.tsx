@@ -226,7 +226,7 @@ export default function Home() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmationData, setConfirmationData] = useState<any>(null);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, watch, setValue } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       isAdult: true,
@@ -409,10 +409,9 @@ export default function Home() {
                       <input
                         type="radio"
                         checked={isAdult === true}
-                        onChange={() => register("isAdult").onChange({ target: { value: true } } as any)}
+                        onClick={() => setValue("isAdult", true)}
                         className="sr-only"
                       />
-                      <input type="hidden" {...register("isAdult")} value={isAdult ? "true" : "false"} />
                       <p className="font-bold text-green-400 text-sm">SIM</p>
                     </div>
                   </label>
@@ -425,7 +424,7 @@ export default function Home() {
                       <input
                         type="radio"
                         checked={isAdult === false}
-                        onChange={() => register("isAdult").onChange({ target: { value: false } } as any)}
+                        onClick={() => setValue("isAdult", false)}
                         className="sr-only"
                       />
                       <p className="font-bold text-amber-400 text-sm">NÃO</p>
@@ -520,44 +519,6 @@ export default function Home() {
             {errors.team && (
               <p className="text-xs text-destructive mt-3">{errors.team.message}</p>
             )}
-          </div>
-
-          {/* Pricing summary */}
-          <div className="p-6 rounded-xl border-2 border-primary/30 bg-primary/5 military-glow mb-6">
-            <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-3">Resumo de Preços</h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span>Inscrição no Evento</span>
-                <span className="font-bold">R$ 50,00</span>
-              </div>
-              {watch("wantsPatch") && (
-                <div className="flex justify-between text-amber-400">
-                  <span>+ Patch Oficial</span>
-                  <span className="font-bold">R$ 15,00</span>
-                </div>
-              )}
-              {watch("wantsShirt") && (
-                <div className="flex justify-between text-blue-400">
-                  <span>+ Camisa Oficial ({watch("shirtSize")})</span>
-                  <span className="font-bold">R$ 50,00</span>
-                </div>
-              )}
-              {watch("hasCompanion") && watch("companionCount") && (
-                <div className="flex justify-between text-purple-400">
-                  <span>+ {watch("companionCount")} Acompanhante(s)</span>
-                  <span className="font-bold">R$ {((watch("companionCount") || 0) * 25).toFixed(2)}</span>
-                </div>
-              )}
-              <div className="border-t border-border pt-2 mt-2 flex justify-between font-bold text-foreground">
-                <span>TOTAL</span>
-                <span className="text-primary">R$ {(
-                  50 +
-                  (watch("wantsPatch") ? 15 : 0) +
-                  (watch("wantsShirt") ? 50 : 0) +
-                  (watch("hasCompanion") && watch("companionCount") ? (watch("companionCount") || 0) * 25 : 0)
-                ).toFixed(2)}</span>
-              </div>
-            </div>
           </div>
 
           {/* Optionals section */}
@@ -664,6 +625,45 @@ export default function Home() {
               className="w-full rounded-lg military-glow"
             />
           </div>
+          {/* Pricing summary */}
+          <div className="p-6 rounded-xl border-2 border-primary/30 bg-primary/5 military-glow mb-6">
+            <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-3">Resumo de Preços</h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span>Inscrição no Evento</span>
+                <span className="font-bold">R$ 50,00</span>
+              </div>
+              {watch("wantsPatch") && (
+                <div className="flex justify-between text-amber-400">
+                  <span>+ Patch Oficial</span>
+                  <span className="font-bold">R$ 15,00</span>
+                </div>
+              )}
+              {watch("wantsShirt") && (
+                <div className="flex justify-between text-blue-400">
+                  <span>+ Camisa Oficial ({watch("shirtSize")})</span>
+                  <span className="font-bold">R$ 50,00</span>
+                </div>
+              )}
+              {watch("hasCompanion") && watch("companionCount") && (
+                <div className="flex justify-between text-purple-400">
+                  <span>+ {watch("companionCount")} Acompanhante(s)</span>
+                  <span className="font-bold">R$ {((watch("companionCount") || 0) * 25).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="border-t border-border pt-2 mt-2 flex justify-between font-bold text-foreground">
+                <span>TOTAL</span>
+                <span className="text-primary">R$ {(
+                  50 +
+                  (watch("wantsPatch") ? 15 : 0) +
+                  (watch("wantsShirt") ? 50 : 0) +
+                  (watch("hasCompanion") && watch("companionCount") ? (watch("companionCount") || 0) * 25 : 0)
+                ).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+
 
           {/* Submit button */}
           <Button
