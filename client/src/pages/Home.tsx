@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,7 +7,15 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Users, AlertTriangle, CheckCircle2, ExternalLink, ChevronRight, Target, Crosshair } from "lucide-react";
+import { Shield, Users, AlertTriangle, CheckCircle2, ExternalLink, ChevronRight, Target, Crosshair, Loader2, Send, Download, AlertCircle, MessageCircle } from "lucide-react";
+
+// ─── Image URLs ───────────────────────────────────────────────────────────────
+const IMAGES = {
+  logo: "/manus-storage/1_a95a4967.jpg",
+  rules: "/manus-storage/2_c61defb0.jpg",
+  uniform: "/manus-storage/3_41d6bda3.jpg",
+  terms: "/manus-storage/4_7c1f7eda.jpg",
+};
 
 // ─── Form schema ──────────────────────────────────────────────────────────────
 const formSchema = z.object({
@@ -32,15 +40,28 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 // ─── Confirmation screen ──────────────────────────────────────────────────────
-function ConfirmationScreen({ team, mainGroupLink, teamGroupLink }: {
+function ConfirmationScreen({ 
+  team, 
+  mainGroupLink, 
+  teamGroupLink,
+  isAdult,
+  onClose 
+}: {
   team: "FORCA_INTERVENCAO" | "MILICIA_LOCAL";
   mainGroupLink: string;
   teamGroupLink: string;
+  isAdult: boolean;
+  onClose: () => void;
 }) {
   const teamName = team === "FORCA_INTERVENCAO" ? "FORÇA DE INTERVENÇÃO" : "MILÍCIA LOCAL";
   const teamColor = team === "FORCA_INTERVENCAO" ? "text-green-400" : "text-amber-400";
   const teamBorder = team === "FORCA_INTERVENCAO" ? "border-green-500/40" : "border-amber-500/40";
   const teamBg = team === "FORCA_INTERVENCAO" ? "bg-green-900/20" : "bg-amber-900/20";
+
+  const handleDownloadAuthorizationPDF = () => {
+    // Placeholder: will be replaced with actual PDF when provided
+    toast.error("PDF de autorização será disponibilizado em breve. Aguarde o envio do arquivo.");
+  };
 
   return (
     <div className="min-h-screen tactical-bg flex items-center justify-center p-4">
@@ -50,106 +71,91 @@ function ConfirmationScreen({ team, mainGroupLink, teamGroupLink }: {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-900/30 border-2 border-green-500/50 mb-4 military-glow">
             <CheckCircle2 className="w-10 h-10 text-green-400" />
           </div>
-          <h1 className="text-3xl font-bold text-green-400 mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            INSCRIÇÃO CONFIRMADA
-          </h1>
-          <p className="text-muted-foreground">Operador registrado com sucesso no sistema</p>
-        </div>
-
-        {/* Team badge */}
-        <div className={`rounded-lg border ${teamBorder} ${teamBg} p-4 mb-6 text-center`}>
-          <p className="text-xs text-muted-foreground mb-1 uppercase tracking-widest">Equipe designada</p>
-          <p className={`text-xl font-bold ${teamColor}`} style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>
-            {teamName}
+          <h2 className="text-3xl font-black text-foreground mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            INSCRIÇÃO CONFIRMADA!
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Você foi registrado com sucesso na equipe <span className="font-bold">{teamName}</span>.
           </p>
         </div>
 
-        {/* Links */}
-        <div className="space-y-4 mb-8">
-          <p className="text-sm text-muted-foreground text-center uppercase tracking-widest mb-4">
-            Acesse os grupos do evento
-          </p>
-
-          <a
-            href={mainGroupLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between w-full p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-foreground">Grupo Principal do Evento</p>
-                <p className="text-xs text-muted-foreground">Comunicados e informações gerais</p>
+        {/* Authorization PDF for minors */}
+        {!isAdult && (
+          <div className="bg-destructive/10 border-2 border-destructive/30 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3 mb-3">
+              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-destructive text-sm">⚠️ ATENÇÃO - MENOR DE IDADE</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Você informou ser menor de 18 anos. É obrigatório baixar, imprimir e levar o termo de autorização assinado por um responsável legal no dia do evento.
+                </p>
+                <p className="text-xs text-destructive font-bold mt-2">
+                  SEM ESTE DOCUMENTO ASSINADO, VOCÊ NÃO PODERÁ PARTICIPAR DO EVENTO!
+                </p>
               </div>
             </div>
-            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-          </a>
+            <Button
+              onClick={handleDownloadAuthorizationPDF}
+              variant="outline"
+              className="w-full border-destructive text-destructive hover:bg-destructive/10"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Baixar Termo de Autorização
+            </Button>
+          </div>
+        )}
 
-          <a
-            href={teamGroupLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex items-center justify-between w-full p-4 rounded-lg bg-card border ${teamBorder} hover:${teamBg} transition-all group`}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full ${teamBg} flex items-center justify-center`}>
-                <Shield className={`w-5 h-5 ${teamColor}`} />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-foreground">Grupo da Equipe</p>
-                <p className={`text-xs font-medium ${teamColor}`}>{teamName}</p>
-              </div>
-            </div>
-            <ExternalLink className={`w-4 h-4 text-muted-foreground group-hover:${teamColor} transition-colors`} />
-          </a>
+        {/* Group links */}
+        <div className="space-y-3 mb-6">
+          <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Grupo Principal do Evento</p>
+            <a
+              href={mainGroupLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-bold text-sm"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Entrar no WhatsApp
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+          <div className={`p-4 rounded-lg border ${teamBg} ${teamBorder}`}>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">
+              Grupo da Equipe {teamName}
+            </p>
+            <a
+              href={teamGroupLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-2 ${teamColor} hover:opacity-80 transition-opacity font-bold text-sm`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              Entrar no WhatsApp
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
         </div>
 
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground">
-            Guarde esses links. Eles contêm informações importantes sobre o evento.
-          </p>
-        </div>
+        {/* Close button */}
+        <Button
+          onClick={onClose}
+          variant="outline"
+          className="w-full"
+        >
+          Fechar
+        </Button>
       </div>
     </div>
   );
 }
 
-// ─── Main registration page ───────────────────────────────────────────────────
+// ─── Main form component ──────────────────────────────────────────────────────
 export default function Home() {
-  const [confirmed, setConfirmed] = useState<{
-    team: "FORCA_INTERVENCAO" | "MILICIA_LOCAL";
-    mainGroupLink: string;
-    teamGroupLink: string;
-  } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<any>(null);
 
-  const { data: teamData, refetch: refetchTeams } = trpc.registration.getTeamCounts.useQuery(undefined, {
-    refetchInterval: 10000, // poll every 10s for real-time updates
-  });
-
-  const createMutation = trpc.registration.create.useMutation({
-    onSuccess: (data) => {
-      setConfirmed({
-        team: data.team as "FORCA_INTERVENCAO" | "MILICIA_LOCAL",
-        mainGroupLink: data.mainGroupLink,
-        teamGroupLink: data.teamGroupLink,
-      });
-      refetchTeams();
-    },
-    onError: (err) => {
-      toast.error(err.message || "Erro ao realizar inscrição. Tente novamente.");
-    },
-  });
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       isAdult: false,
@@ -159,33 +165,48 @@ export default function Home() {
     },
   });
 
-  const selectedTeam = watch("team");
   const wantsShirt = watch("wantsShirt");
   const hasCompanion = watch("hasCompanion");
   const isAdult = watch("isAdult");
 
-  const onSubmit = (data: FormData) => {
-    createMutation.mutate(data);
+  const { data: teamCounts } = trpc.registration.getTeamCounts.useQuery(undefined, {
+    refetchInterval: 10000,
+  });
+
+  const createRegistration = trpc.registration.create.useMutation();
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      const result = await createRegistration.mutateAsync(data);
+      setConfirmationData({
+        team: result.team,
+        mainGroupLink: result.mainGroupLink,
+        teamGroupLink: result.teamGroupLink,
+        isAdult: data.isAdult,
+      });
+      setShowConfirmation(true);
+      toast.success("Inscrição realizada com sucesso!");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao realizar inscrição");
+    }
   };
 
-  if (confirmed) {
+  if (showConfirmation && confirmationData) {
     return (
       <ConfirmationScreen
-        team={confirmed.team}
-        mainGroupLink={confirmed.mainGroupLink}
-        teamGroupLink={confirmed.teamGroupLink}
+        team={confirmationData.team}
+        mainGroupLink={confirmationData.mainGroupLink}
+        teamGroupLink={confirmationData.teamGroupLink}
+        isAdult={confirmationData.isAdult}
+        onClose={() => setShowConfirmation(false)}
       />
     );
   }
 
-  const fi = teamData?.FORCA_INTERVENCAO;
-  const ml = teamData?.MILICIA_LOCAL;
-  const limit = teamData?.limit ?? 75;
-
   return (
     <div className="min-h-screen tactical-bg">
       {/* Header */}
-      <header className="relative border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded bg-primary/20 border border-primary/30 flex items-center justify-center">
@@ -194,466 +215,319 @@ export default function Home() {
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-widest leading-none">Sistema de</p>
               <p className="font-bold text-foreground leading-tight" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.8rem" }}>
-                INSCRIÇÕES TÁTICAS
+                INSCRIÇÕES
               </p>
             </div>
           </div>
-          <a
-            href="/admin"
-            className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-          >
-            <Shield className="w-3 h-3" />
-            Admin
-          </a>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest">Evento Tático</p>
+            <p className="font-bold text-primary" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.75rem" }}>
+              OPERAÇÃO FALCÃO NEGRO
+            </p>
+          </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-        <div className="container text-center relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs uppercase tracking-widest mb-6">
-            <Target className="w-3 h-3" />
-            Evento Tático Especial
+      {/* Main content */}
+      <main className="container py-12">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {/* Logo image */}
+          <div className="mb-12">
+            <img
+              src={IMAGES.logo}
+              alt="Operação Falcão Negro"
+              className="w-full rounded-lg military-glow"
+            />
           </div>
-          <h1
-            className="text-4xl md:text-6xl font-black text-foreground mb-4 leading-tight"
-            style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.05em" }}
-          >
-            OPERAÇÃO<br />
-            <span className="text-primary">TÁTICA</span>
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Registre-se agora e escolha sua equipe. Vagas limitadas por unidade.
-          </p>
-        </div>
-      </section>
 
-      {/* Team availability banner */}
-      {teamData && (
-        <section className="container mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* FORÇA DE INTERVENÇÃO */}
-            <div className={`rounded-lg border p-4 ${fi?.available ? "border-green-500/30 bg-green-900/10" : "border-red-500/30 bg-red-900/10"}`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-green-400" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.7rem" }}>
-                  FORÇA DE INTERVENÇÃO
-                </span>
-                {fi?.available ? (
-                  <span className="text-xs text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full">DISPONÍVEL</span>
-                ) : (
-                  <span className="text-xs text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">ESGOTADO</span>
-                )}
-              </div>
-              <div className="progress-bar mb-1">
-                <div
-                  className={`progress-fill ${(fi?.count ?? 0) / limit > 0.8 ? "danger" : ""}`}
-                  style={{ width: `${Math.min(100, ((fi?.count ?? 0) / limit) * 100)}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">{fi?.count ?? 0}/{limit} vagas preenchidas · {fi?.remaining ?? limit} restantes</p>
-            </div>
-
-            {/* MILÍCIA LOCAL */}
-            <div className={`rounded-lg border p-4 ${ml?.available ? "border-amber-500/30 bg-amber-900/10" : "border-red-500/30 bg-red-900/10"}`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-amber-400" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.7rem" }}>
-                  MILÍCIA LOCAL
-                </span>
-                {ml?.available ? (
-                  <span className="text-xs text-amber-400 bg-amber-900/30 px-2 py-0.5 rounded-full">DISPONÍVEL</span>
-                ) : (
-                  <span className="text-xs text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">ESGOTADO</span>
-                )}
-              </div>
-              <div className="progress-bar mb-1">
-                <div
-                  className={`progress-fill ${(ml?.count ?? 0) / limit > 0.8 ? "danger" : ""}`}
-                  style={{ width: `${Math.min(100, ((ml?.count ?? 0) / limit) * 100)}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">{ml?.count ?? 0}/{limit} vagas preenchidas · {ml?.remaining ?? limit} restantes</p>
-            </div>
+          {/* Rules image */}
+          <div className="mb-12">
+            <img
+              src={IMAGES.rules}
+              alt="Itens Obrigatórios e Regras"
+              className="w-full rounded-lg military-glow"
+            />
           </div>
-        </section>
-      )}
 
-      {/* Registration form */}
-      <section className="container pb-16">
-        <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl mx-auto space-y-8">
-
-          {/* ── Section 1: Personal data ── */}
-          <div className="rounded-xl border border-border bg-card military-glow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">01</div>
-              <h2 className="text-lg font-bold uppercase tracking-widest" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.85rem" }}>
-                Dados do Operador
-              </h2>
-            </div>
+          {/* Personal data section */}
+          <div className="p-6 rounded-xl border-2 border-border bg-card/50 military-glow">
+            <h2 className="text-2xl font-black text-foreground mb-6" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              DADOS DO OPERADOR
+            </h2>
 
             <div className="space-y-4">
               {/* Full name */}
               <div>
-                <Label htmlFor="fullName" className="text-xs uppercase tracking-widest text-muted-foreground mb-1.5 block">
+                <Label htmlFor="fullName" className="text-xs uppercase tracking-widest font-bold">
                   Nome Completo *
                 </Label>
                 <Input
                   id="fullName"
                   placeholder="Digite seu nome completo"
-                  className="bg-input border-border focus:border-primary"
                   {...register("fullName")}
+                  className="mt-2 bg-secondary/50 border-border"
                 />
                 {errors.fullName && (
-                  <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" /> {errors.fullName.message}
-                  </p>
+                  <p className="text-xs text-destructive mt-1">{errors.fullName.message}</p>
                 )}
               </div>
 
               {/* Phone */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone" className="text-xs uppercase tracking-widest text-muted-foreground mb-1.5 block">
-                    Telefone do Participante *
-                  </Label>
-                  <Input
-                    id="phone"
-                    placeholder="(00) 00000-0000"
-                    className="bg-input border-border focus:border-primary"
-                    {...register("phone")}
-                  />
-                  {errors.phone && (
-                    <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> {errors.phone.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="familyPhone" className="text-xs uppercase tracking-widest text-muted-foreground mb-1.5 block">
-                    Telefone de Familiar *
-                  </Label>
-                  <Input
-                    id="familyPhone"
-                    placeholder="(00) 00000-0000"
-                    className="bg-input border-border focus:border-primary"
-                    {...register("familyPhone")}
-                  />
-                  {errors.familyPhone && (
-                    <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> {errors.familyPhone.message}
-                    </p>
-                  )}
-                </div>
+              <div>
+                <Label htmlFor="phone" className="text-xs uppercase tracking-widest font-bold">
+                  Telefone do Participante *
+                </Label>
+                <Input
+                  id="phone"
+                  placeholder="(11) 99999-9999"
+                  {...register("phone")}
+                  className="mt-2 bg-secondary/50 border-border"
+                />
+                {errors.phone && (
+                  <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>
+                )}
+              </div>
+
+              {/* Family phone */}
+              <div>
+                <Label htmlFor="familyPhone" className="text-xs uppercase tracking-widest font-bold">
+                  Telefone de Familiar *
+                </Label>
+                <Input
+                  id="familyPhone"
+                  placeholder="(11) 99999-9999"
+                  {...register("familyPhone")}
+                  className="mt-2 bg-secondary/50 border-border"
+                />
+                {errors.familyPhone && (
+                  <p className="text-xs text-destructive mt-1">{errors.familyPhone.message}</p>
+                )}
               </div>
 
               {/* Age confirmation */}
-              <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground mb-2 block">
-                  Você é maior de 18 anos? *
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-border">
+                <input
+                  type="checkbox"
+                  id="isAdult"
+                  {...register("isAdult")}
+                  className="w-4 h-4 cursor-pointer"
+                />
+                <Label htmlFor="isAdult" className="text-xs font-bold cursor-pointer flex-1">
+                  Confirmo que sou maior de 18 anos *
                 </Label>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setValue("isAdult", true)}
-                    className={`flex-1 py-2.5 rounded-lg border text-sm font-semibold transition-all ${
-                      isAdult === true
-                        ? "border-primary bg-primary/20 text-primary"
-                        : "border-border bg-input text-muted-foreground hover:border-primary/50"
-                    }`}
-                  >
-                    Sim
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setValue("isAdult", false)}
-                    className={`flex-1 py-2.5 rounded-lg border text-sm font-semibold transition-all ${
-                      isAdult === false && watch("isAdult") !== undefined
-                        ? "border-destructive bg-destructive/20 text-destructive"
-                        : "border-border bg-input text-muted-foreground hover:border-destructive/50"
-                    }`}
-                  >
-                    Não
-                  </button>
-                </div>
-                {errors.isAdult && (
-                  <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" /> {errors.isAdult.message}
-                  </p>
-                )}
               </div>
+              {errors.isAdult && (
+                <p className="text-xs text-destructive">{errors.isAdult.message}</p>
+              )}
             </div>
           </div>
 
-          {/* ── Section 2: Team selection ── */}
-          <div className="rounded-xl border border-border bg-card military-glow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">02</div>
-              <h2 className="text-lg font-bold uppercase tracking-widest" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.85rem" }}>
-                Escolha de Equipe
-              </h2>
+          {/* Uniform image */}
+          <div className="mb-12">
+            <img
+              src={IMAGES.uniform}
+              alt="Padrão de Vestimenta"
+              className="w-full rounded-lg military-glow"
+            />
+          </div>
+
+          {/* Team selection */}
+          <div className="p-6 rounded-xl border-2 border-border bg-card/50 military-glow">
+            <h2 className="text-2xl font-black text-foreground mb-6" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              ESCOLHA SUA EQUIPE
+            </h2>
+
+            <div className="space-y-3">
+              {/* Team 1 */}
+              <label className="cursor-pointer">
+                <div className={`p-4 rounded-lg border-2 transition-all ${
+                  watch("team") === "FORCA_INTERVENCAO"
+                    ? "border-green-500/60 bg-green-900/20"
+                    : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
+                } ${!teamCounts?.FORCA_INTERVENCAO.available ? "opacity-50 cursor-not-allowed" : ""}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        value="FORCA_INTERVENCAO"
+                        {...register("team")}
+                        disabled={!teamCounts?.FORCA_INTERVENCAO.available}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                      <div>
+                        <p className="font-bold text-green-400 uppercase tracking-widest text-sm" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                          Força de Intervenção
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {teamCounts?.FORCA_INTERVENCAO.count ?? 0}/{teamCounts?.limit ?? 75} vagas
+                        </p>
+                      </div>
+                    </div>
+                    {!teamCounts?.FORCA_INTERVENCAO.available && (
+                      <span className="text-xs font-bold text-destructive uppercase">Cheio</span>
+                    )}
+                  </div>
+                </div>
+              </label>
+
+              {/* Team 2 */}
+              <label className="cursor-pointer">
+                <div className={`p-4 rounded-lg border-2 transition-all ${
+                  watch("team") === "MILICIA_LOCAL"
+                    ? "border-amber-500/60 bg-amber-900/20"
+                    : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
+                } ${!teamCounts?.MILICIA_LOCAL.available ? "opacity-50 cursor-not-allowed" : ""}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        value="MILICIA_LOCAL"
+                        {...register("team")}
+                        disabled={!teamCounts?.MILICIA_LOCAL.available}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                      <div>
+                        <p className="font-bold text-amber-400 uppercase tracking-widest text-sm" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                          Milícia Local
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {teamCounts?.MILICIA_LOCAL.count ?? 0}/{teamCounts?.limit ?? 75} vagas
+                        </p>
+                      </div>
+                    </div>
+                    {!teamCounts?.MILICIA_LOCAL.available && (
+                      <span className="text-xs font-bold text-destructive uppercase">Cheio</span>
+                    )}
+                  </div>
+                </div>
+              </label>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* FORÇA DE INTERVENÇÃO */}
-              <button
-                type="button"
-                disabled={!fi?.available}
-                onClick={() => fi?.available && setValue("team", "FORCA_INTERVENCAO")}
-                className={`team-card rounded-xl p-5 text-left bg-card/50 ${
-                  selectedTeam === "FORCA_INTERVENCAO" ? "selected" : ""
-                } ${!fi?.available ? "disabled" : ""}`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-900/30 border border-green-500/30 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-green-400" />
-                  </div>
-                  {selectedTeam === "FORCA_INTERVENCAO" && (
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
-                    </div>
-                  )}
-                  {!fi?.available && (
-                    <span className="text-xs text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">ESGOTADO</span>
-                  )}
-                </div>
-                <p className="font-bold text-green-400 text-sm mb-1" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.7rem", letterSpacing: "0.05em" }}>
-                  FORÇA DE INTERVENÇÃO
-                </p>
-                <p className="text-xs text-muted-foreground mb-3">Unidade de resposta rápida e intervenção tática</p>
-                <div className="progress-bar mb-1">
-                  <div
-                    className={`progress-fill ${(fi?.count ?? 0) / limit > 0.8 ? "danger" : ""}`}
-                    style={{ width: `${Math.min(100, ((fi?.count ?? 0) / limit) * 100)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">{fi?.remaining ?? limit} vagas restantes</p>
-              </button>
-
-              {/* MILÍCIA LOCAL */}
-              <button
-                type="button"
-                disabled={!ml?.available}
-                onClick={() => ml?.available && setValue("team", "MILICIA_LOCAL")}
-                className={`team-card rounded-xl p-5 text-left bg-card/50 ${
-                  selectedTeam === "MILICIA_LOCAL" ? "selected" : ""
-                } ${!ml?.available ? "disabled" : ""}`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-900/30 border border-amber-500/30 flex items-center justify-center">
-                    <Target className="w-5 h-5 text-amber-400" />
-                  </div>
-                  {selectedTeam === "MILICIA_LOCAL" && (
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
-                    </div>
-                  )}
-                  {!ml?.available && (
-                    <span className="text-xs text-red-400 bg-red-900/30 px-2 py-0.5 rounded-full">ESGOTADO</span>
-                  )}
-                </div>
-                <p className="font-bold text-amber-400 text-sm mb-1" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.7rem", letterSpacing: "0.05em" }}>
-                  MILÍCIA LOCAL
-                </p>
-                <p className="text-xs text-muted-foreground mb-3">Força de defesa territorial e controle de área</p>
-                <div className="progress-bar mb-1">
-                  <div
-                    className={`progress-fill ${(ml?.count ?? 0) / limit > 0.8 ? "danger" : ""}`}
-                    style={{ width: `${Math.min(100, ((ml?.count ?? 0) / limit) * 100)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">{ml?.remaining ?? limit} vagas restantes</p>
-              </button>
-            </div>
             {errors.team && (
-              <p className="text-destructive text-xs mt-3 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> {errors.team.message}
-              </p>
+              <p className="text-xs text-destructive mt-3">{errors.team.message}</p>
             )}
           </div>
 
-          {/* ── Section 3: Optionals ── */}
-          <div className="rounded-xl border border-border bg-card military-glow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">03</div>
-              <h2 className="text-lg font-bold uppercase tracking-widest" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.85rem" }}>
-                Opcionais do Evento
-              </h2>
-            </div>
+          {/* Optionals section */}
+          <div className="p-6 rounded-xl border-2 border-border bg-card/50 military-glow">
+            <h2 className="text-2xl font-black text-foreground mb-6" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              OPCIONAIS DO EVENTO
+            </h2>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Patch */}
-              <div className="rounded-lg border border-border bg-secondary/30 p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">Patch Oficial do Evento</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Patch bordado exclusivo do evento</p>
-                    <p className="text-primary font-bold text-sm mt-1">R$ 20,00</p>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setValue("wantsPatch", true)}
-                      className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                        watch("wantsPatch") === true
-                          ? "border-primary bg-primary/20 text-primary"
-                          : "border-border bg-input text-muted-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      Sim
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setValue("wantsPatch", false)}
-                      className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                        watch("wantsPatch") === false
-                          ? "border-border bg-secondary text-foreground"
-                          : "border-border bg-input text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      Não
-                    </button>
-                  </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
+                <div>
+                  <p className="font-bold text-sm">Patch Oficial</p>
+                  <p className="text-xs text-muted-foreground">R$ 20,00</p>
                 </div>
+                <input
+                  type="checkbox"
+                  {...register("wantsPatch")}
+                  className="w-4 h-4 cursor-pointer"
+                />
               </div>
 
               {/* Shirt */}
-              <div className="rounded-lg border border-border bg-secondary/30 p-4">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">Camisa Oficial do Evento</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Camisa tática exclusiva do evento</p>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setValue("wantsShirt", true)}
-                      className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                        wantsShirt === true
-                          ? "border-primary bg-primary/20 text-primary"
-                          : "border-border bg-input text-muted-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      Sim
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setValue("wantsShirt", false); setValue("shirtSize", undefined); }}
-                      className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                        wantsShirt === false
-                          ? "border-border bg-secondary text-foreground"
-                          : "border-border bg-input text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      Não
-                    </button>
-                  </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
+                  <p className="font-bold text-sm">Camisa Oficial</p>
+                  <input
+                    type="checkbox"
+                    {...register("wantsShirt")}
+                    className="w-4 h-4 cursor-pointer"
+                  />
                 </div>
+
                 {wantsShirt && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2 uppercase tracking-widest">Tamanho</p>
-                    <div className="flex gap-2">
-                      {(["P", "M", "G", "GG"] as const).map((size) => (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => setValue("shirtSize", size)}
-                          className={`flex-1 py-2 rounded-lg border text-sm font-bold transition-all ${
+                  <div className="p-3 rounded-lg bg-secondary/30 border border-border">
+                    <Label className="text-xs uppercase tracking-widest font-bold mb-2 block">
+                      Tamanho da Camisa *
+                    </Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {["P", "M", "G", "GG"].map((size) => (
+                        <label key={size} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            value={size}
+                            {...register("shirtSize")}
+                            className="sr-only"
+                          />
+                          <div className={`p-2 rounded text-center text-sm font-bold transition-all ${
                             watch("shirtSize") === size
-                              ? "border-primary bg-primary/20 text-primary"
-                              : "border-border bg-input text-muted-foreground hover:border-primary/50"
-                          }`}
-                        >
-                          {size}
-                        </button>
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                          }`}>
+                            {size}
+                          </div>
+                        </label>
                       ))}
                     </div>
-                    {errors.shirtSize && (
-                      <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" /> {errors.shirtSize.message}
-                      </p>
-                    )}
                   </div>
                 )}
               </div>
 
               {/* Companion */}
-              <div className="rounded-lg border border-border bg-secondary/30 p-4">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">Acompanhante</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Deseja levar acompanhante(s)?</p>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setValue("hasCompanion", true)}
-                      className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                        hasCompanion === true
-                          ? "border-primary bg-primary/20 text-primary"
-                          : "border-border bg-input text-muted-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      Sim
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setValue("hasCompanion", false); setValue("companionCount", undefined); }}
-                      className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                        hasCompanion === false
-                          ? "border-border bg-secondary text-foreground"
-                          : "border-border bg-input text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      Não
-                    </button>
-                  </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
+                  <p className="font-bold text-sm">Levar Acompanhante</p>
+                  <input
+                    type="checkbox"
+                    {...register("hasCompanion")}
+                    className="w-4 h-4 cursor-pointer"
+                  />
                 </div>
+
                 {hasCompanion && (
-                  <div>
-                    <Label htmlFor="companionCount" className="text-xs uppercase tracking-widest text-muted-foreground mb-1.5 block">
-                      Quantidade de Acompanhantes
+                  <div className="p-3 rounded-lg bg-secondary/30 border border-border">
+                    <Label htmlFor="companionCount" className="text-xs uppercase tracking-widest font-bold">
+                      Quantidade de Acompanhantes *
                     </Label>
                     <Input
                       id="companionCount"
                       type="number"
-                      min={1}
-                      max={20}
-                      placeholder="Ex: 2"
-                      className="bg-input border-border focus:border-primary max-w-[160px]"
+                      min="1"
+                      max="20"
+                      placeholder="1"
                       {...register("companionCount", { valueAsNumber: true })}
+                      className="mt-2 bg-secondary/50 border-border"
                     />
-                    {errors.companionCount && (
-                      <p className="text-destructive text-xs mt-1 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" /> {errors.companionCount.message}
-                      </p>
-                    )}
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Terms image */}
+          <div className="mb-12">
+            <img
+              src={IMAGES.terms}
+              alt="Termos e Responsabilidade"
+              className="w-full rounded-lg military-glow"
+            />
+          </div>
+
+          {/* Submit button */}
           <Button
             type="submit"
-            disabled={createMutation.isPending}
-            className="w-full h-14 text-base font-bold uppercase tracking-widest"
-            style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.85rem" }}
+            disabled={isSubmitting}
+            className="w-full h-12 font-bold uppercase tracking-widest bg-primary hover:bg-primary/90"
+            style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.75rem" }}
           >
-            {createMutation.isPending ? (
-              <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Processando...
-              </span>
+              </>
             ) : (
-              <span className="flex items-center gap-2">
-                Confirmar Inscrição
-                <ChevronRight className="w-5 h-5" />
-              </span>
+              <>
+                <Send className="w-4 h-4 mr-2" />
+                Enviar Inscrição
+              </>
             )}
           </Button>
         </form>
-      </section>
+      </main>
     </div>
   );
 }

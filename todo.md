@@ -45,3 +45,13 @@
 - [x] Teste de criação de inscrição
 - [x] Teste de bloqueio de vagas
 - [x] Teste de listagem admin
+
+## Atualizacoes com Imagens e PDF
+- [x] Upload de 4 imagens (logo, regras, uniforme, termos)
+- [x] Integracao de imagem 1 (logo Falcao Negro) no topo
+- [x] Integracao de imagem 2 (regras e itens obrigatorios)
+- [x] Integracao de imagem 3 (padrao de vestimenta antes da escolha de equipe)
+- [x] Integracao de imagem 4 (termos e responsabilidade antes do envio)
+- [x] Mudar nome do evento para "Operacao Falcao Negro"
+- [x] Implementar aviso para menores de idade na tela de confirmacao
+- [x] Botao de download de PDF para menores (placeholder aguardando arquivo)
