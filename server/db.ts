@@ -150,7 +150,7 @@ export function calculateTotalAmount(data: {
   hasCompanion: boolean;
   companionCount: number;
 }): number {
-  let total = 5000; // R$ 50,00 base
+  let total = 0; // Inscrição gratuita
   if (data.wantsPatch) total += 1500; // R$ 15,00
   if (data.wantsShirt) total += 5000; // R$ 50,00
   if (data.hasCompanion && data.companionCount > 0) {
@@ -163,4 +163,16 @@ export async function updatePaymentStatus(registrationId: number, status: 'pendi
   const db = await getDb();
   if (!db) throw new Error('Database not available');
   await db.update(registrations).set({ paymentStatus: status }).where(eq(registrations.id, registrationId));
+}
+
+export async function deleteRegistration(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(registrations).where(eq(registrations.id, id));
+}
+
+export async function updateRegistration(id: number, data: Partial<InsertRegistration>): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(registrations).set(data).where(eq(registrations.id, id));
 }

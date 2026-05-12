@@ -63,13 +63,13 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 // ─── Confirmation screen ──────────────────────────────────────────────────────
-function ConfirmationScreen({ 
-  team, 
-  mainGroupLink, 
+function ConfirmationScreen({
+  team,
+  mainGroupLink,
   teamGroupLink,
   isAdult,
   totalAmount,
-  onClose 
+  onClose
 }: {
   team: "FORCA_INTERVENCAO" | "MILICIA_LOCAL";
   mainGroupLink: string;
@@ -88,7 +88,14 @@ function ConfirmationScreen({
     return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   };
   const handleDownloadAuthorizationPDF = () => {
-    toast.error("PDF de autorização será disponibilizado em breve. Aguarde o envio do arquivo.");
+    const link = document.createElement("a");
+
+    link.href = "/termo_autorizacao.pdf";
+    link.download = "termo_autorizacao.pdf";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -134,7 +141,7 @@ function ConfirmationScreen({
         )}
 
         {/* Payment information */}
-        {totalAmount && (
+        {totalAmount !== undefined && (
           <div className="bg-primary/10 border-2 border-primary/30 rounded-lg p-4 mb-6">
             <div className="mb-4">
               <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Valor a Pagar</p>
@@ -393,11 +400,10 @@ export default function Home() {
                 </Label>
                 <div className="flex gap-3">
                   <label className="flex-1 cursor-pointer">
-                    <div className={`p-3 rounded-lg border-2 text-center transition-all ${
-                      isAdult === true
+                    <div className={`p-3 rounded-lg border-2 text-center transition-all ${isAdult === true
                         ? "border-green-500/60 bg-green-900/20"
                         : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
-                    }`}>
+                      }`}>
                       <input
                         type="radio"
                         checked={isAdult === true}
@@ -408,11 +414,10 @@ export default function Home() {
                     </div>
                   </label>
                   <label className="flex-1 cursor-pointer">
-                    <div className={`p-3 rounded-lg border-2 text-center transition-all ${
-                      isAdult === false
+                    <div className={`p-3 rounded-lg border-2 text-center transition-all ${isAdult === false
                         ? "border-amber-500/60 bg-amber-900/20"
                         : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
-                    }`}>
+                      }`}>
                       <input
                         type="radio"
                         checked={isAdult === false}
@@ -445,11 +450,10 @@ export default function Home() {
             <div className="space-y-3">
               {/* Team 1 */}
               <label className="cursor-pointer">
-                <div className={`p-4 rounded-lg border-2 transition-all ${
-                  watch("team") === "FORCA_INTERVENCAO"
+                <div className={`p-4 rounded-lg border-2 transition-all ${watch("team") === "FORCA_INTERVENCAO"
                     ? "border-green-500/60 bg-green-900/20"
                     : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
-                } ${!teamCounts?.FORCA_INTERVENCAO.available ? "opacity-50 cursor-not-allowed" : ""}`}>
+                  } ${!teamCounts?.FORCA_INTERVENCAO.available ? "opacity-50 cursor-not-allowed" : ""}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <input
@@ -477,11 +481,10 @@ export default function Home() {
 
               {/* Team 2 */}
               <label className="cursor-pointer">
-                <div className={`p-4 rounded-lg border-2 transition-all ${
-                  watch("team") === "MILICIA_LOCAL"
+                <div className={`p-4 rounded-lg border-2 transition-all ${watch("team") === "MILICIA_LOCAL"
                     ? "border-amber-500/60 bg-amber-900/20"
                     : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
-                } ${!teamCounts?.MILICIA_LOCAL.available ? "opacity-50 cursor-not-allowed" : ""}`}>
+                  } ${!teamCounts?.MILICIA_LOCAL.available ? "opacity-50 cursor-not-allowed" : ""}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <input
@@ -548,11 +551,10 @@ export default function Home() {
                             {...register("shirtSize")}
                             className="sr-only"
                           />
-                          <div className={`p-2 rounded text-center text-sm font-bold transition-all ${
-                            watch("shirtSize") === size
+                          <div className={`p-2 rounded text-center text-sm font-bold transition-all ${watch("shirtSize") === size
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
-                          }`}>
+                            }`}>
                             {size}
                           </div>
                         </label>
@@ -604,6 +606,7 @@ export default function Home() {
               className="w-full rounded-lg military-glow"
             />
           </div>
+
           {/* Pricing summary */}
           <div className="p-6 rounded-xl border-2 border-primary/30 bg-primary/5 military-glow mb-6">
             <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-3">Resumo de Preços</h3>
@@ -612,37 +615,29 @@ export default function Home() {
                 <span>Inscrição no Evento</span>
                 <span className="font-bold">R$ 0,00</span>
               </div>
-              {watch("wantsPatch") && (
-                <div className="flex justify-between text-amber-400">
-                  <span>+ Patch Oficial</span>
-                  <span className="font-bold">R$ 15,00</span>
-                </div>
-              )}
               {watch("wantsShirt") && (
                 <div className="flex justify-between text-blue-400">
                   <span>+ Camisa Oficial ({watch("shirtSize")})</span>
                   <span className="font-bold">R$ 50,00</span>
                 </div>
               )}
+
               {watch("hasCompanion") && watch("companionCount") && (
                 <div className="flex justify-between text-purple-400">
                   <span>+ {watch("companionCount")} Acompanhante(s)</span>
                   <span className="font-bold">R$ {((watch("companionCount") || 0) * 25).toFixed(2)}</span>
                 </div>
               )}
+
               <div className="border-t border-border pt-2 mt-2 flex justify-between font-bold text-foreground">
                 <span>TOTAL</span>
                 <span className="text-primary">R$ {(
-                  0 +
-                  (watch("wantsPatch") ? 15 : 0) +
                   (watch("wantsShirt") ? 60 : 0) +
                   (watch("hasCompanion") && watch("companionCount") ? (watch("companionCount") || 0) * 25 : 0)
                 ).toFixed(2)}</span>
               </div>
             </div>
           </div>
-
-
 
           {/* Submit button */}
           <Button

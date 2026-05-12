@@ -14,6 +14,9 @@ import {
   Crosshair,
   ArrowLeft,
   Download,
+  Trash2,
+  Edit2,
+  DollarSign
 } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
@@ -37,6 +40,11 @@ export default function AdminPanel() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [deleteItem, setDeleteItem] = useState<number | null>(null);
+  const [editItem, setEditItem] = useState<any | null>(null);
+
+  const utils = trpc.useUtils();
+
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
       refresh();
@@ -45,6 +53,34 @@ export default function AdminPanel() {
     onError: (error) => {
       toast.error(error.message || "Erro ao realizar login");
     },
+  });
+
+  const deleteMutation = trpc.registration.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Inscrição excluída com sucesso");
+      utils.registration.list.invalidate();
+      utils.registration.getTeamCounts.invalidate();
+      setDeleteItem(null);
+    },
+    onError: (error) => toast.error(error.message || "Erro ao excluir"),
+  });
+
+  const updateMutation = trpc.registration.update.useMutation({
+    onSuccess: () => {
+      toast.success("Inscrição atualizada com sucesso");
+      utils.registration.list.invalidate();
+      utils.registration.getTeamCounts.invalidate();
+      setEditItem(null);
+    },
+    onError: (error) => toast.error(error.message || "Erro ao atualizar"),
+  });
+
+  const confirmPaymentMutation = trpc.registration.confirmPayment.useMutation({
+    onSuccess: () => {
+      toast.success("Pagamento confirmado com sucesso");
+      utils.registration.list.invalidate();
+    },
+    onError: (error) => toast.error(error.message || "Erro ao confirmar pagamento"),
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -64,6 +100,26 @@ export default function AdminPanel() {
     }
   };
 
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editItem) return;
+    
+    // Convert string inputs to proper types
+    const updatedData = {
+      ...editItem,
+      companionCount: parseInt(editItem.companionCount) || 0,
+      wantsPatch: editItem.wantsPatch === true || editItem.wantsPatch === "true",
+      wantsShirt: editItem.wantsShirt === true || editItem.wantsShirt === "true",
+      hasCompanion: editItem.hasCompanion === true || editItem.hasCompanion === "true",
+      isAdult: editItem.isAdult === true || editItem.isAdult === "true",
+    };
+
+    updateMutation.mutate({
+      id: editItem.id,
+      data: updatedData,
+    });
+  };
+
   const { data, isLoading: dataLoading } = trpc.registration.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
     refetchInterval: 15000,
@@ -73,7 +129,6 @@ export default function AdminPanel() {
   const handleExportExcel = async () => {
     exportExcel(undefined, {
       onSuccess: (result: { success: boolean; buffer: string; filename: string }) => {
-        // Decode base64 to binary string
         const binaryString = atob(result.buffer);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
@@ -92,7 +147,6 @@ export default function AdminPanel() {
     });
   };
 
-  // Loading auth state
   if (loading) {
     return (
       <div className="min-h-screen tactical-bg flex items-center justify-center">
@@ -104,7 +158,6 @@ export default function AdminPanel() {
     );
   }
 
-  // Not authenticated
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen tactical-bg flex items-center justify-center p-4">
@@ -173,7 +226,6 @@ export default function AdminPanel() {
     );
   }
 
-  // Authenticated but not admin
   if (user?.role !== "admin") {
     return (
       <div className="min-h-screen tactical-bg flex items-center justify-center p-4">
@@ -207,7 +259,114 @@ export default function AdminPanel() {
   const companionTotal = registrations.reduce((sum, r) => sum + (r.companionCount ?? 0), 0);
 
   return (
-    <div className="min-h-screen tactical-bg">
+    <div className="min-h-screen tactical-bg relative">
+      {/* Delete Modal */}
+      {deleteItem !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="bg-card border-2 border-destructive/50 rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-destructive mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>CONFIRMAR EXCLUSÃO</h3>
+            <p className="text-sm text-muted-foreground mb-6">Tem certeza que deseja excluir esta inscrição? Esta ação não pode ser desfeita.</p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setDeleteItem(null)} disabled={deleteMutation.isPending}>Cancelar</Button>
+              <Button variant="destructive" onClick={() => deleteMutation.mutate({ id: deleteItem })} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Excluir"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editItem !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="bg-card border-2 border-primary/30 rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h3 className="text-xl font-bold text-foreground mb-4" style={{ fontFamily: "'Orbitron', sans-serif" }}>EDITAR INSCRIÇÃO</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <Label>Nome Completo</Label>
+                <Input value={editItem.fullName} onChange={e => setEditItem({...editItem, fullName: e.target.value})} />
+              </div>
+              <div>
+                <Label>Equipe</Label>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={editItem.team} 
+                  onChange={e => setEditItem({...editItem, team: e.target.value})}
+                >
+                  <option value="FORCA_INTERVENCAO">Força de Intervenção</option>
+                  <option value="MILICIA_LOCAL">Milícia Local</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Patch (+R$15)</Label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={editItem.wantsPatch ? "true" : "false"} 
+                    onChange={e => setEditItem({...editItem, wantsPatch: e.target.value === "true"})}
+                  >
+                    <option value="true">Sim</option>
+                    <option value="false">Não</option>
+                  </select>
+                </div>
+                <div>
+                  <Label>Camisa (+R$50)</Label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={editItem.wantsShirt ? "true" : "false"} 
+                    onChange={e => setEditItem({...editItem, wantsShirt: e.target.value === "true"})}
+                  >
+                    <option value="true">Sim</option>
+                    <option value="false">Não</option>
+                  </select>
+                </div>
+              </div>
+              {editItem.wantsShirt && (
+                <div>
+                  <Label>Tamanho da Camisa</Label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={editItem.shirtSize || "M"} 
+                    onChange={e => setEditItem({...editItem, shirtSize: e.target.value})}
+                  >
+                    <option value="P">P</option>
+                    <option value="M">M</option>
+                    <option value="G">G</option>
+                    <option value="GG">GG</option>
+                  </select>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Acompanhante (+R$25)</Label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={editItem.hasCompanion ? "true" : "false"} 
+                    onChange={e => setEditItem({...editItem, hasCompanion: e.target.value === "true"})}
+                  >
+                    <option value="true">Sim</option>
+                    <option value="false">Não</option>
+                  </select>
+                </div>
+                {editItem.hasCompanion && (
+                  <div>
+                    <Label>Qtd. Acompanhantes</Label>
+                    <Input type="number" min="1" value={editItem.companionCount || 1} onChange={e => setEditItem({...editItem, companionCount: e.target.value})} />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex gap-3 justify-end mt-6">
+                <Button variant="outline" type="button" onClick={() => setEditItem(null)} disabled={updateMutation.isPending}>Cancelar</Button>
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container py-3 flex items-center justify-between">
@@ -333,13 +492,11 @@ export default function AdminPanel() {
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Nº</th>
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Nome</th>
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Equipe</th>
-                    <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Telefone</th>
-                    <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Familiar</th>
-                    <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">+18</th>
                     <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Patch</th>
                     <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Camisa</th>
                     <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Acomp.</th>
-                    <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Data</th>
+                    <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Pagamento</th>
+                    <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -356,15 +513,6 @@ export default function AdminPanel() {
                           <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-900/20 px-2 py-0.5 rounded-full">
                             <Target className="w-3 h-3" /> MILÍCIA LOCAL
                           </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{reg.phone}</td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{reg.familyPhone}</td>
-                      <td className="px-4 py-3 text-center">
-                        {reg.isAdult ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-400 mx-auto" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-destructive mx-auto" />
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -386,14 +534,50 @@ export default function AdminPanel() {
                       <td className="px-4 py-3 text-center text-foreground font-medium">
                         {reg.hasCompanion ? reg.companionCount : "—"}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                        {new Date(reg.createdAt).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                      <td className="px-4 py-3 text-center">
+                        {reg.paymentStatus === "confirmed" ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-green-400 bg-green-900/20 px-2 py-0.5 rounded-full">
+                            PAGO
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-900/20 px-2 py-0.5 rounded-full">
+                            PENDENTE
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {reg.paymentStatus !== "confirmed" && (
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="h-8 w-8 text-green-400 border-green-500/30 hover:bg-green-500/10" 
+                              title="Confirmar Pagamento"
+                              onClick={() => confirmPaymentMutation.mutate({ registrationId: reg.id })}
+                              disabled={confirmPaymentMutation.isPending}
+                            >
+                              <DollarSign className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8 text-blue-400 border-blue-500/30 hover:bg-blue-500/10" 
+                            title="Editar Inscrição"
+                            onClick={() => setEditItem(reg)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8 text-destructive border-destructive/30 hover:bg-destructive/10" 
+                            title="Excluir Inscrição"
+                            onClick={() => setDeleteItem(reg.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
