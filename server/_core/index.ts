@@ -70,7 +70,10 @@ async function startServer() {
   }
 }
 
-startServer().catch(console.error);
+// Only start the server if not running on Vercel
+if (!process.env.VERCEL) {
+  startServer().catch(console.error);
+}
 
 // Export app for Vercel
 export default app;
