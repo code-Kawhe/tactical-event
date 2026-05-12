@@ -248,7 +248,6 @@ export default function Home() {
         mainGroupLink: result.mainGroupLink,
         teamGroupLink: result.teamGroupLink,
         isAdult: result.isAdult,
-        totalAmount: result.totalAmount,
       });
       setShowConfirmation(true);
       toast.success("Inscrição realizada com sucesso!");
