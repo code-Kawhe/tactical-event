@@ -618,7 +618,7 @@ export default function Home() {
               {watch("wantsShirt") && (
                 <div className="flex justify-between text-blue-400">
                   <span>+ Camisa Oficial ({watch("shirtSize")})</span>
-                  <span className="font-bold">R$ 50,00</span>
+                  <span className="font-bold">R$ 60,00</span>
                 </div>
               )}
 
