@@ -143,24 +143,16 @@ function ConfirmationScreen({
         {/* Payment information */}
         {totalAmount !== undefined && (
           <div className="bg-primary/10 border-2 border-primary/30 rounded-lg p-4 mb-6">
-            <div className="flex sm:flex-row flex-col">
-              <div>
-                <div className="mb-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Valor a Pagar</p>
-                  <p className="text-3xl font-black text-primary" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-                    {formatCurrency(totalAmount)}
-                  </p>
-                </div>
-                <div className="bg-secondary/30 rounded p-3 mb-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Chave Pix (será informada em breve)</p>
-                  <p className="text-sm font-mono text-foreground">Aguardando configuração...</p>
-                </div>
-              </div>
-              <div className="sm:ml-0 flex items-center justify-center">
-                 <QRCode value="https://decifre.top" size={128} />
-              </div>
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Valor a Pagar</p>
+              <p className="text-3xl font-black text-primary" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                {formatCurrency(totalAmount)}
+              </p>
             </div>
-
+            <div className="bg-secondary/30 rounded p-3 mb-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Chave Pix (será informada em breve)</p>
+              <p className="text-sm font-mono text-foreground">cfb3b4d9-8361-4123-af62-73fe210b8649</p>
+            </div>
             <div className="bg-warning/10 border border-warning/30 rounded p-3 mb-4">
               <p className="text-xs text-muted-foreground mb-2">
                 <strong>Como proceder:</strong>
