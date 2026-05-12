@@ -2,15 +2,15 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/trpc/(.*)",
+      "source": "/api/trpc/:path*",
       "destination": "/api/trpc-handler"
     },
     {
-      "source": "/manus-storage/(.*)",
+      "source": "/manus-storage/:path*",
       "destination": "/api/trpc-handler"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api|manus-storage|assets|favicon.ico).*)",
       "destination": "/index.html"
     }
   ]
