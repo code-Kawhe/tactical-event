@@ -6,7 +6,6 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { serveStatic, setupVite } from "./vite";
 
 const app = express();
 // Configure body parser with larger size limit for file uploads
@@ -29,10 +28,12 @@ async function startServer() {
   
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else if (!process.env.VERCEL) {
     // Only serve static files via Express if not on Vercel
     // Vercel handles static files natively via its own edge network
+    const { serveStatic } = await import("./vite");
     serveStatic(app);
   }
 

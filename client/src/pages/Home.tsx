@@ -9,13 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, Users, AlertTriangle, CheckCircle2, ExternalLink, ChevronRight, Target, Crosshair, Loader2, Send, Download, AlertCircle, MessageCircle } from "lucide-react";
 
-// ─── Image URLs ───────────────────────────────────────────────────────────────
-const IMAGES = {
-  logo: "/manus-storage/1_a95a4967.jpg",
-  rules: "/manus-storage/2_c61defb0.jpg",
-  uniform: "/manus-storage/3_41d6bda3.jpg",
-  terms: "/manus-storage/4_7c1f7eda.jpg",
-};
 
 // ─── CPF validation ───────────────────────────────────────────────────────────
 function isValidCpf(cpf: string): boolean {
@@ -308,7 +301,7 @@ export default function Home() {
           {/* Logo image */}
           <div className="mb-12">
             <img
-              src={IMAGES.logo}
+              src="topo.jpeg"
               alt="Operação Falcão Negro"
               className="w-full rounded-lg military-glow"
             />
@@ -317,7 +310,7 @@ export default function Home() {
           {/* Rules image */}
           <div className="mb-12">
             <img
-              src={IMAGES.rules}
+              src="regras.jpeg"
               alt="Itens Obrigatórios e Regras"
               className="w-full rounded-lg military-glow"
             />
@@ -438,7 +431,7 @@ export default function Home() {
           {/* Uniform image */}
           <div className="mb-12">
             <img
-              src={IMAGES.uniform}
+              src="uniform.jpeg"
               alt="Padrão de Vestimenta"
               className="w-full rounded-lg military-glow"
             />
@@ -528,25 +521,12 @@ export default function Home() {
             </h2>
 
             <div className="space-y-4">
-              {/* Patch */}
-              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
-                <div>
-                  <p className="font-bold text-sm">Patch Oficial</p>
-                  <p className="text-xs text-muted-foreground">R$ 15,00</p>
-                </div>
-                <input
-                  type="checkbox"
-                  {...register("wantsPatch")}
-                  className="w-4 h-4 cursor-pointer"
-                />
-              </div>
-
               {/* Shirt */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
                   <div>
                     <p className="font-bold text-sm">Camisa Oficial</p>
-                    <p className="text-xs text-muted-foreground">R$ 50,00</p>
+                    <p className="text-xs text-muted-foreground">R$ 60,00</p>
                   </div>
                   <input
                     type="checkbox"
@@ -620,7 +600,7 @@ export default function Home() {
           {/* Terms image */}
           <div className="mb-12">
             <img
-              src={IMAGES.terms}
+              src="termos.jpeg"
               alt="Termos e Responsabilidade"
               className="w-full rounded-lg military-glow"
             />
@@ -631,7 +611,7 @@ export default function Home() {
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span>Inscrição no Evento</span>
-                <span className="font-bold">R$ 50,00</span>
+                <span className="font-bold">R$ 0,00</span>
               </div>
               {watch("wantsPatch") && (
                 <div className="flex justify-between text-amber-400">
@@ -654,9 +634,9 @@ export default function Home() {
               <div className="border-t border-border pt-2 mt-2 flex justify-between font-bold text-foreground">
                 <span>TOTAL</span>
                 <span className="text-primary">R$ {(
-                  50 +
+                  0 +
                   (watch("wantsPatch") ? 15 : 0) +
-                  (watch("wantsShirt") ? 50 : 0) +
+                  (watch("wantsShirt") ? 60 : 0) +
                   (watch("hasCompanion") && watch("companionCount") ? (watch("companionCount") || 0) * 25 : 0)
                 ).toFixed(2)}</span>
               </div>

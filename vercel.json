@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/trpc/:path*",
-      "destination": "/api/trpc-handler"
+      "destination": "/api/trpc-handler/:path*"
     },
     {
       "source": "/manus-storage/:path*",
-      "destination": "/api/trpc-handler"
+      "destination": "/api/trpc-handler/:path*"
     },
     {
       "source": "/((?!api|manus-storage|assets|favicon.ico).*)",
