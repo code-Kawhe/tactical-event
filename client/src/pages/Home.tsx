@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Users, AlertTriangle, CheckCircle2, ExternalLink, ChevronRight, Target, Crosshair, Loader2, Send, Download, AlertCircle, MessageCircle } from "lucide-react";
-
+import { Shield, Users, AlertTriangle, CheckCircle2, ExternalLink, ChevronRight, Target, Crosshair, Loader2, Send, Download, AlertCircle, MessageCircle, QrCode } from "lucide-react";
+import QRCode from "react-qr-code";
 
 // ─── CPF validation ───────────────────────────────────────────────────────────
 function isValidCpf(cpf: string): boolean {
@@ -143,16 +143,24 @@ function ConfirmationScreen({
         {/* Payment information */}
         {totalAmount !== undefined && (
           <div className="bg-primary/10 border-2 border-primary/30 rounded-lg p-4 mb-6">
-            <div className="mb-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Valor a Pagar</p>
-              <p className="text-3xl font-black text-primary" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-                {formatCurrency(totalAmount)}
-              </p>
+            <div className="flex sm:flex-row flex-col">
+              <div>
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Valor a Pagar</p>
+                  <p className="text-3xl font-black text-primary" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                    {formatCurrency(totalAmount)}
+                  </p>
+                </div>
+                <div className="bg-secondary/30 rounded p-3 mb-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Chave Pix (será informada em breve)</p>
+                  <p className="text-sm font-mono text-foreground">Aguardando configuração...</p>
+                </div>
+              </div>
+              <div className="sm:ml-0 flex items-center justify-center">
+                 <QRCode value="https://decifre.top" size={128} />
+              </div>
             </div>
-            <div className="bg-secondary/30 rounded p-3 mb-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Chave Pix (será informada em breve)</p>
-              <p className="text-sm font-mono text-foreground">Aguardando configuração...</p>
-            </div>
+
             <div className="bg-warning/10 border border-warning/30 rounded p-3 mb-4">
               <p className="text-xs text-muted-foreground mb-2">
                 <strong>Como proceder:</strong>
@@ -401,8 +409,8 @@ export default function Home() {
                 <div className="flex gap-3">
                   <label className="flex-1 cursor-pointer">
                     <div className={`p-3 rounded-lg border-2 text-center transition-all ${isAdult === true
-                        ? "border-green-500/60 bg-green-900/20"
-                        : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
+                      ? "border-green-500/60 bg-green-900/20"
+                      : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
                       }`}>
                       <input
                         type="radio"
@@ -415,8 +423,8 @@ export default function Home() {
                   </label>
                   <label className="flex-1 cursor-pointer">
                     <div className={`p-3 rounded-lg border-2 text-center transition-all ${isAdult === false
-                        ? "border-amber-500/60 bg-amber-900/20"
-                        : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
+                      ? "border-amber-500/60 bg-amber-900/20"
+                      : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
                       }`}>
                       <input
                         type="radio"
@@ -451,8 +459,8 @@ export default function Home() {
               {/* Team 1 */}
               <label className="cursor-pointer">
                 <div className={`p-4 rounded-lg border-2 transition-all ${watch("team") === "FORCA_INTERVENCAO"
-                    ? "border-green-500/60 bg-green-900/20"
-                    : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
+                  ? "border-green-500/60 bg-green-900/20"
+                  : "border-green-500/20 bg-green-900/5 hover:bg-green-900/10"
                   } ${!teamCounts?.FORCA_INTERVENCAO.available ? "opacity-50 cursor-not-allowed" : ""}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -482,8 +490,8 @@ export default function Home() {
               {/* Team 2 */}
               <label className="cursor-pointer">
                 <div className={`p-4 rounded-lg border-2 transition-all ${watch("team") === "MILICIA_LOCAL"
-                    ? "border-amber-500/60 bg-amber-900/20"
-                    : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
+                  ? "border-amber-500/60 bg-amber-900/20"
+                  : "border-amber-500/20 bg-amber-900/5 hover:bg-amber-900/10"
                   } ${!teamCounts?.MILICIA_LOCAL.available ? "opacity-50 cursor-not-allowed" : ""}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -552,8 +560,8 @@ export default function Home() {
                             className="sr-only"
                           />
                           <div className={`p-2 rounded text-center text-sm font-bold transition-all ${watch("shirtSize") === size
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-foreground hover:bg-secondary/80"
                             }`}>
                             {size}
                           </div>

@@ -491,6 +491,7 @@ export default function AdminPanel() {
                   <tr className="border-b border-border bg-secondary/30">
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Nº</th>
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Nome</th>
+                    <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Cpf</th>
                     <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Equipe</th>
                     <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Patch</th>
                     <th className="text-center px-4 py-3 text-xs text-muted-foreground uppercase tracking-widest font-medium">Camisa</th>
@@ -504,6 +505,7 @@ export default function AdminPanel() {
                     <tr key={reg.id} className="border-b border-border/50 hover:bg-secondary/20 transition-colors">
                       <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
                       <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{reg.fullName}</td>
+                      <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{reg.cpf}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {reg.team === "FORCA_INTERVENCAO" ? (
                           <span className="inline-flex items-center gap-1 text-xs font-bold text-green-400 bg-green-900/20 px-2 py-0.5 rounded-full">
