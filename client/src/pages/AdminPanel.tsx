@@ -1,7 +1,8 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
+import { auth, googleProvider } from "@/lib/firebase";
+import { signInWithPopup } from "firebase/auth";
 import {
   Shield,
   Users,
@@ -15,6 +16,8 @@ import {
   Download,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useState } from "react";
+import { toast } from "sonner";
 
 function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
@@ -29,7 +32,32 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 }
 
 export default function AdminPanel() {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated, refresh } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const loginMutation = trpc.auth.loginWithFirebase.useMutation({
+    onSuccess: () => {
+      refresh();
+      toast.success("Login realizado com sucesso!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao realizar login");
+    },
+  });
+
+  const handleLogin = async () => {
+    setIsLoggingIn(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      await loginMutation.mutateAsync({ idToken });
+    } catch (error: any) {
+      console.error("Login error", error);
+      toast.error("Erro ao autenticar com Google");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   const { data, isLoading: dataLoading } = trpc.registration.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
@@ -86,14 +114,22 @@ export default function AdminPanel() {
             Autenticação necessária para acessar o painel de comando.
           </p>
           <Button
-            asChild
+            onClick={handleLogin}
+            disabled={isLoggingIn}
             className="w-full h-12 font-bold uppercase tracking-widest"
             style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.75rem" }}
           >
-            <a href={getLoginUrl()}>
-              <LogIn className="w-4 h-4 mr-2" />
-              Autenticar Acesso
-            </a>
+            {isLoggingIn ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Autenticando...
+              </>
+            ) : (
+              <>
+                <LogIn className="w-4 h-4 mr-2" />
+                Autenticar Acesso
+              </>
+            )}
           </Button>
           <Link href="/">
             <button className="mt-4 text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 mx-auto">

@@ -77,6 +77,45 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    loginWithFirebase: publicProcedure
+      .input(z.object({ idToken: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        const { admin } = await import("./_core/firebase");
+        const { sdk } = await import("./_core/sdk");
+        const { upsertUser, getUserByOpenId } = await import("./db");
+        const { ONE_YEAR_MS } = await import("@shared/const");
+
+        try {
+          const decodedToken = await admin.auth().verifyIdToken(input.idToken);
+          const openId = decodedToken.uid;
+          const email = decodedToken.email;
+          const name = decodedToken.name;
+
+          await upsertUser({
+            openId,
+            name: name || null,
+            email: email ?? null,
+            loginMethod: "google",
+            lastSignedIn: new Date(),
+          });
+
+          const sessionToken = await sdk.createSessionToken(openId, {
+            name: name || "",
+            expiresInMs: ONE_YEAR_MS,
+          });
+
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+          return { success: true };
+        } catch (error) {
+          console.error("[Auth] Firebase verification failed", error);
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Falha na autenticação com Firebase",
+          });
+        }
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
