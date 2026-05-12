@@ -1,8 +1,8 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { auth, googleProvider } from "@/lib/firebase";
-import { signInWithPopup } from "firebase/auth";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Shield,
   Users,
@@ -34,8 +34,10 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 export default function AdminPanel() {
   const { user, loading, isAuthenticated, refresh } = useAuth();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const loginMutation = trpc.auth.loginWithFirebase.useMutation({
+  const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
       refresh();
       toast.success("Login realizado com sucesso!");
@@ -45,15 +47,18 @@ export default function AdminPanel() {
     },
   });
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
+
     setIsLoggingIn(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken();
-      await loginMutation.mutateAsync({ idToken });
+      await loginMutation.mutateAsync({ email, password });
     } catch (error: any) {
       console.error("Login error", error);
-      toast.error("Erro ao autenticar com Google");
     } finally {
       setIsLoggingIn(false);
     }
@@ -113,26 +118,53 @@ export default function AdminPanel() {
           <p className="text-muted-foreground text-sm mb-8">
             Autenticação necessária para acessar o painel de comando.
           </p>
-          <Button
-            onClick={handleLogin}
-            disabled={isLoggingIn}
-            className="w-full h-12 font-bold uppercase tracking-widest"
-            style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.75rem" }}
-          >
-            {isLoggingIn ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Autenticando...
-              </>
-            ) : (
-              <>
-                <LogIn className="w-4 h-4 mr-2" />
-                Autenticar Acesso
-              </>
-            )}
-          </Button>
+
+          <form onSubmit={handleLogin} className="space-y-4 mb-6 text-left">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@admin.com.br"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-card/50 border-primary/20 focus:border-primary/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-card/50 border-primary/20 focus:border-primary/50"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full h-12 font-bold uppercase tracking-widest mt-4"
+              style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.75rem" }}
+            >
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Autenticando...
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar no Sistema
+                </>
+              )}
+            </Button>
+          </form>
+
           <Link href="/">
-            <button className="mt-4 text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 mx-auto">
+            <button className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 mx-auto">
               <ArrowLeft className="w-3 h-3" /> Voltar ao início
             </button>
           </Link>

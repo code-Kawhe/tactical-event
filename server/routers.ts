@@ -77,30 +77,36 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
-    loginWithFirebase: publicProcedure
-      .input(z.object({ idToken: z.string() }))
+    login: publicProcedure
+      .input(z.object({ email: z.string().email(), password: z.string() }))
       .mutation(async ({ input, ctx }) => {
-        const { admin } = await import("./_core/firebase");
         const { sdk } = await import("./_core/sdk");
-        const { upsertUser, getUserByOpenId } = await import("./db");
+        const { getUserByEmail } = await import("./db");
         const { ONE_YEAR_MS } = await import("@shared/const");
+        const bcrypt = await import("bcryptjs");
 
         try {
-          const decodedToken = await admin.auth().verifyIdToken(input.idToken);
-          const openId = decodedToken.uid;
-          const email = decodedToken.email;
-          const name = decodedToken.name;
+          const user = await getUserByEmail(input.email);
 
-          await upsertUser({
-            openId,
-            name: name || null,
-            email: email ?? null,
-            loginMethod: "google",
-            lastSignedIn: new Date(),
-          });
+          if (!user || !user.passwordHash) {
+             throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Credenciais inválidas",
+            });
+          }
 
-          const sessionToken = await sdk.createSessionToken(openId, {
-            name: name || "",
+          const isValid = await bcrypt.compare(input.password, user.passwordHash);
+
+          if (!isValid) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Credenciais inválidas",
+            });
+          }
+
+          const sessionToken = await sdk.createSessionToken(user.email, {
+            name: user.name || "",
+            role: user.role,
             expiresInMs: ONE_YEAR_MS,
           });
 
@@ -109,10 +115,11 @@ export const appRouter = router({
 
           return { success: true };
         } catch (error) {
-          console.error("[Auth] Firebase verification failed", error);
+          console.error("[Auth] Login failed", error);
+          if (error instanceof TRPCError) throw error;
           throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Falha na autenticação com Firebase",
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Erro ao realizar login",
           });
         }
       }),

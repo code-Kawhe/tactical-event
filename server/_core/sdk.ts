@@ -112,15 +112,16 @@ class SDKServer {
       throw ForbiddenError("Invalid session cookie");
     }
 
-    const sessionUserId = session.openId;
-    const user = await db.getUserByOpenId(sessionUserId);
+    const email = session.openId;
+    const user = await db.getUserByEmail(email);
 
     if (!user) {
       throw ForbiddenError("User not found");
     }
 
     await db.upsertUser({
-      openId: user.openId,
+      email: user.email,
+      passwordHash: user.passwordHash,
       lastSignedIn: new Date(),
     });
 
