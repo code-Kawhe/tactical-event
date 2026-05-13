@@ -150,7 +150,7 @@ function ConfirmationScreen({
               </p>
             </div>
             <div className="bg-secondary/30 rounded p-3 mb-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Chave Pix (será informada em breve)</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Chave Pix</p>
               <p className="text-sm font-mono text-foreground">cfb3b4d9-8361-4123-af62-73fe210b8649</p>
             </div>
             <div className="bg-warning/10 border border-warning/30 rounded p-3 mb-4">
