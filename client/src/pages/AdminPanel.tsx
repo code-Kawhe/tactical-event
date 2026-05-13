@@ -35,7 +35,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 }
 
 export default function AdminPanel() {
-  const { user, loading, isAuthenticated, refresh } = useAuth();
+  const { user, loading, isAuthenticated, refresh, logout } = useAuth();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -381,13 +381,19 @@ export default function AdminPanel() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground hidden sm:block">{user?.name}</span>
             <Link href="/">
               <button className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
                 <ArrowLeft className="w-3 h-3" /> Inscrições
               </button>
             </Link>
+            <button 
+              onClick={() => logout()} 
+              className="text-xs text-destructive hover:text-destructive/80 transition-colors flex items-center gap-1"
+            >
+              Sair
+            </button>
           </div>
         </div>
       </header>
