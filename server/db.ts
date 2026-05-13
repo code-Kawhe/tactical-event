@@ -111,15 +111,21 @@ export async function createRegistration(data: InsertRegistration): Promise<{ id
     throw new Error(`A equipe ${data.team === "FORCA_INTERVENCAO" ? "FORÇA DE INTERVENÇÃO" : "MILÍCIA LOCAL"} já atingiu o limite de ${TEAM_LIMIT} participantes.`);
   }
 
-  // Get next registration number
-  const totalRegistrations = await db.select({ count: sql<number>`count(*)` }).from(registrations);
-  const nextNumber = Math.min(Number(totalRegistrations[0]?.count ?? 0) + 1, 150);
+  const maxRegistration = await db.select({ maxNumber: sql<number>`max(${registrations.registrationNumber})` }).from(registrations);
+  const nextNumber = Math.min(Number(maxRegistration[0]?.maxNumber ?? 0) + 1, 150);
 
-  const result = await db.insert(registrations).values({
-    ...data,
-    registrationNumber: nextNumber,
-  });
-  return { id: Number((result as any)[0]?.insertId ?? 0) };
+  try {
+    const result = await db.insert(registrations).values({
+      ...data,
+      registrationNumber: nextNumber,
+    });
+    return { id: Number((result as any)[0]?.insertId ?? 0) };
+  } catch (error: any) {
+    if (error.code === 'ER_DUP_ENTRY' || error.message?.includes('Duplicate entry')) {
+      throw new Error("CPF já cadastrado. Cada CPF pode se inscrever apenas uma vez.");
+    }
+    throw error;
+  }
 }
 
 export async function getAllRegistrations(): Promise<Registration[]> {
@@ -152,7 +158,7 @@ export function calculateTotalAmount(data: {
 }): number {
   let total = 0; // Inscrição gratuita
   if (data.wantsPatch) total += 1500; // R$ 15,00
-  if (data.wantsShirt) total += 5000; // R$ 50,00
+  if (data.wantsShirt) total += 6000; // R$ 60,00
   if (data.hasCompanion && data.companionCount > 0) {
     total += data.companionCount * 2500; // R$ 25,00 each
   }
